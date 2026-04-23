@@ -1,0 +1,36 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: bedrock-foundation
+  owner: routex
+  labels:
+    displayName: AWS Bedrock
+    lane: managed
+spec:
+  provider: bedrock
+  enabled: true
+  endpoints:
+    region: us-east-1
+  auth:
+    strategy: aws
+  capabilities:
+    - chat
+    - responses
+    - tools
+    - reasoning
+    - json
+  models:
+    - id: claude-sonnet-bedrock
+      alias: claude-3-7-sonnet-bedrock
+      upstreamModel: anthropic.claude-3-7-sonnet-20250219-v1:0
+      purpose: chat
+      tier: managed
+      selectorTags:
+        - aws
+        - managed
+      endpoints:
+        - chat
+        - responses
+      priority: 130
+      weight: 75
+      region: us-east-1

@@ -1,0 +1,16 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+      - id: check-yaml
+        files: ^(configs|examples|\.github/ISSUE_TEMPLATE)/.*\.(yaml|yml)$
+  - repo: local
+    hooks:
+      - id: routex-validate
+        name: RouteX config validation
+        entry: ./scripts/dev/validate-configs.sh
+        language: system
+        pass_filenames: false

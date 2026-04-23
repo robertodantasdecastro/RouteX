@@ -1,0 +1,40 @@
+apiVersion: routex.dev/v1alpha1
+kind: RouteProfile
+metadata:
+  name: cloud-power
+  owner: routex
+  labels:
+    displayName: Cloud Power
+spec:
+  goal: cloud-power
+  description: Prioriza frontier models cloud para qualidade e capacidade maxima.
+  strategy: cloud_power
+  localPriority: 0
+  cloudAllowed: true
+  privateMode: false
+  selectors:
+    capabilities:
+      - chat
+      - responses
+      - tools
+      - reasoning
+    latencyBudgetMs: 10000
+    budgetClass: premium
+    compliance:
+      pii: masked
+      dataResidency: flexible
+    regionAffinity: global
+  fallbackStrategy: weighted
+  candidates:
+    - providerRef: openai-cloud
+      modelRef: gpt-5.2-codex
+      weight: 100
+    - providerRef: anthropic-cloud
+      modelRef: claude-sonnet-4-5
+      weight: 90
+    - providerRef: bedrock-foundation
+      modelRef: claude-sonnet-bedrock
+      weight: 80
+    - providerRef: mock-dev
+      modelRef: gpt-5.2-codex
+      weight: 10

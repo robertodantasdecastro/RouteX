@@ -1,0 +1,30 @@
+apiVersion: routex.dev/v1alpha1
+kind: RouteXConfig
+metadata:
+  name: routex-team-local
+  owner: enablement
+  labels:
+    environment: local
+spec:
+  environment: local
+  gateway:
+    host: 127.0.0.1
+    port: 48200
+    publicBaseUrl: http://127.0.0.1:48200
+    adminBaseUrl: http://127.0.0.1:48200/api/admin/v1
+  routing:
+    defaultProfile: local-first
+    providerRefs:
+      - ollama-local
+      - lmstudio-local
+      - openai-cloud
+      - anthropic-cloud
+      - mock-dev
+    failoverEnabled: true
+    requestTimeoutMs: 9000
+    retryBudget: 2
+  observability:
+    auditLogs: true
+    redactSensitiveData: true
+    metricsEnabled: true
+    tracingEnabled: true

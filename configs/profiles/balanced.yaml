@@ -1,0 +1,42 @@
+apiVersion: routex.dev/v1alpha1
+kind: RouteProfile
+metadata:
+  name: balanced
+  owner: routex
+  labels:
+    displayName: Balanced
+spec:
+  goal: balanced
+  description: Equilibra disponibilidade, qualidade e fallback entre cloud e local.
+  strategy: balanced
+  localPriority: 50
+  cloudAllowed: true
+  privateMode: false
+  selectors:
+    capabilities:
+      - chat
+      - responses
+      - tools
+    latencyBudgetMs: 6000
+    budgetClass: standard
+    compliance:
+      pii: masked
+      dataResidency: flexible
+    regionAffinity: global
+  fallbackStrategy: weighted
+  candidates:
+    - providerRef: openai-cloud
+      modelRef: gpt-4.1-mini
+      weight: 100
+    - providerRef: anthropic-cloud
+      modelRef: claude-sonnet-4-5
+      weight: 85
+    - providerRef: bedrock-foundation
+      modelRef: claude-sonnet-bedrock
+      weight: 75
+    - providerRef: ollama-local
+      modelRef: qwen-coder
+      weight: 45
+    - providerRef: mock-dev
+      modelRef: gpt-4.1-mini
+      weight: 10

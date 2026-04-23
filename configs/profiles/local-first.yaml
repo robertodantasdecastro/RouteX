@@ -1,0 +1,39 @@
+apiVersion: routex.dev/v1alpha1
+kind: RouteProfile
+metadata:
+  name: local-first
+  owner: routex
+  labels:
+    displayName: Local First
+spec:
+  goal: local-first
+  description: Prioriza engines locais e usa cloud apenas como escape controlado.
+  strategy: local_first
+  localPriority: 100
+  cloudAllowed: true
+  privateMode: false
+  selectors:
+    capabilities:
+      - chat
+      - responses
+      - tools
+    latencyBudgetMs: 3000
+    budgetClass: standard
+    compliance:
+      pii: masked
+      dataResidency: regional
+    regionAffinity: local
+  fallbackStrategy: failover
+  candidates:
+    - providerRef: ollama-local
+      modelRef: qwen-coder
+      weight: 100
+    - providerRef: lmstudio-local
+      modelRef: deepseek-local
+      weight: 90
+    - providerRef: mock-dev
+      modelRef: qwen-coder-local
+      weight: 80
+    - providerRef: openai-cloud
+      modelRef: gpt-4.1-mini
+      weight: 25

@@ -1,0 +1,141 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: RouteProfile
+type: object
+additionalProperties: false
+required:
+  - apiVersion
+  - kind
+  - metadata
+  - spec
+properties:
+  apiVersion:
+    type: string
+    const: routex.dev/v1alpha1
+  kind:
+    type: string
+    const: RouteProfile
+  metadata:
+    type: object
+    additionalProperties: false
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        minLength: 1
+      owner:
+        type: string
+      labels:
+        type: object
+        additionalProperties:
+          type: string
+  spec:
+    type: object
+    additionalProperties: false
+    required:
+      - goal
+      - selectors
+      - fallbackStrategy
+      - candidates
+    properties:
+      goal:
+        type: string
+        minLength: 1
+      description:
+        type: string
+      strategy:
+        type: string
+        enum:
+          - balanced
+          - local_first
+          - cloud_power
+          - private_mode
+      localPriority:
+        type: integer
+        minimum: 0
+        maximum: 100
+      cloudAllowed:
+        type: boolean
+      privateMode:
+        type: boolean
+      selectors:
+        type: object
+        additionalProperties: false
+        required:
+          - capabilities
+          - latencyBudgetMs
+          - budgetClass
+          - compliance
+          - regionAffinity
+        properties:
+          capabilities:
+            type: array
+            minItems: 1
+            items:
+              type: string
+              enum:
+                - chat
+                - responses
+                - embeddings
+                - tools
+                - vision
+                - reasoning
+                - json
+          latencyBudgetMs:
+            type: integer
+            minimum: 100
+          budgetClass:
+            type: string
+            enum:
+              - premium
+              - standard
+              - economy
+          compliance:
+            type: object
+            additionalProperties: false
+            required:
+              - pii
+              - dataResidency
+            properties:
+              pii:
+                type: string
+                enum:
+                  - raw
+                  - masked
+                  - disallowed
+              dataResidency:
+                type: string
+                enum:
+                  - flexible
+                  - regional
+                  - strict
+          regionAffinity:
+            type: string
+            minLength: 1
+      fallbackStrategy:
+        type: string
+        enum:
+          - weighted
+          - failover
+          - hedged
+      candidates:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          additionalProperties: false
+          required:
+            - providerRef
+            - modelRef
+            - weight
+          properties:
+            providerRef:
+              type: string
+              minLength: 1
+            modelRef:
+              type: string
+              minLength: 1
+            weight:
+              type: integer
+              minimum: 1
+              maximum: 100

@@ -1,0 +1,77 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: mock-dev
+  owner: routex
+  labels:
+    displayName: Mock Dev
+    lane: fallback
+spec:
+  provider: mock
+  enabled: true
+  endpoints: {}
+  auth:
+    strategy: none
+  capabilities:
+    - chat
+    - responses
+    - embeddings
+    - tools
+    - reasoning
+    - json
+  models:
+    - id: gpt-4.1-mini
+      alias: gpt-4.1-mini
+      upstreamModel: gpt-4.1-mini
+      purpose: chat
+      tier: development
+      selectorTags:
+        - smoke
+        - offline
+      endpoints:
+        - chat
+        - responses
+      priority: 500
+      weight: 10
+      isLocal: true
+    - id: gpt-5.2-codex
+      alias: gpt-5.2-codex
+      upstreamModel: gpt-5.2-codex
+      purpose: chat
+      tier: development
+      selectorTags:
+        - smoke
+        - coding
+      endpoints:
+        - chat
+        - responses
+      priority: 500
+      weight: 10
+      isLocal: true
+    - id: text-embedding-3-small
+      alias: text-embedding-3-small
+      upstreamModel: text-embedding-3-small
+      purpose: embeddings
+      tier: development
+      selectorTags:
+        - smoke
+        - retrieval
+      endpoints:
+        - embeddings
+      priority: 500
+      weight: 10
+      isLocal: true
+    - id: qwen-coder-local
+      alias: qwen2.5-coder:latest
+      upstreamModel: qwen2.5-coder:latest
+      purpose: chat
+      tier: development
+      selectorTags:
+        - smoke
+        - local
+      endpoints:
+        - chat
+        - responses
+      priority: 450
+      weight: 20
+      isLocal: true

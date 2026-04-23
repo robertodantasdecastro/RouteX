@@ -1,0 +1,34 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: lmstudio-local
+  owner: routex
+  labels:
+    displayName: LM Studio Local
+    lane: local
+spec:
+  provider: lm-studio
+  enabled: true
+  endpoints:
+    baseUrl: http://127.0.0.1:1234/v1
+  auth:
+    strategy: none
+  capabilities:
+    - chat
+    - responses
+    - json
+  models:
+    - id: deepseek-local
+      alias: deepseek-r1-distill-qwen-14b
+      upstreamModel: deepseek-r1-distill-qwen-14b
+      purpose: chat
+      tier: local
+      selectorTags:
+        - local
+        - reasoning
+      endpoints:
+        - chat
+        - responses
+      priority: 50
+      weight: 90
+      isLocal: true

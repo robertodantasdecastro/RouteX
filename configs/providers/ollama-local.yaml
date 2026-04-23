@@ -1,0 +1,35 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: ollama-local
+  owner: routex
+  labels:
+    displayName: Ollama Local
+    lane: local
+spec:
+  provider: ollama
+  enabled: true
+  endpoints:
+    baseUrl: http://127.0.0.1:11434/v1
+  auth:
+    strategy: none
+  capabilities:
+    - chat
+    - responses
+    - tools
+    - json
+  models:
+    - id: qwen-coder
+      alias: qwen2.5-coder:latest
+      upstreamModel: qwen2.5-coder:latest
+      purpose: chat
+      tier: local
+      selectorTags:
+        - local
+        - coding
+      endpoints:
+        - chat
+        - responses
+      priority: 40
+      weight: 100
+      isLocal: true

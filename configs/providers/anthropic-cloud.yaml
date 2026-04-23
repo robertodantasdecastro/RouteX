@@ -1,0 +1,50 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: anthropic-cloud
+  owner: routex
+  labels:
+    displayName: Anthropic Cloud
+    lane: fallback
+spec:
+  provider: anthropic
+  enabled: true
+  endpoints:
+    baseUrl: https://api.anthropic.com
+  auth:
+    strategy: env
+    envVar: ANTHROPIC_API_KEY
+  capabilities:
+    - chat
+    - responses
+    - tools
+    - reasoning
+    - vision
+    - json
+  models:
+    - id: claude-sonnet-4-5
+      alias: claude-sonnet-4-5
+      upstreamModel: claude-sonnet-4-5
+      purpose: chat
+      tier: flagship
+      selectorTags:
+        - balanced
+        - safety
+      endpoints:
+        - chat
+        - responses
+      priority: 120
+      weight: 90
+    - id: claude-haiku-4
+      alias: claude-haiku-4
+      upstreamModel: claude-haiku-4
+      purpose: chat
+      tier: fast
+      selectorTags:
+        - latency
+        - fallback
+      endpoints:
+        - chat
+        - responses
+      priority: 110
+      weight: 80

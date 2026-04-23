@@ -1,0 +1,11 @@
+---
+description: Example worker boundary guidance for parallel RouteX contributors.
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
+- Prefer small, scoped changes that respect teammate ownership.
+- Do not redefine shared configuration shape without updating schemas, docs, and tests together.
+- If implementation code is missing, document intent and leave clear integration points instead of guessing runtime details.
+- Avoid reverting unrelated work when multiple workers are active in parallel.

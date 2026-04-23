@@ -1,0 +1,56 @@
+[project]
+name = "routex-gateway"
+version = "0.1.0"
+description = "Local AI router gateway for RouteX"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "aiosqlite>=0.21.0",
+  "argon2-cffi>=25.1.0",
+  "boto3>=1.40.0",
+  "fastapi>=0.116.0",
+  "greenlet>=3.2.4",
+  "httpx>=0.28.0",
+  "pydantic>=2.11.0",
+  "pydantic-settings>=2.10.0",
+  "python-json-logger>=3.3.0",
+  "pyyaml>=6.0.2",
+  "sqlalchemy>=2.0.41",
+  "uvicorn>=0.35.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.16.0",
+  "pytest>=8.4.0",
+  "pytest-asyncio>=1.0.0",
+  "respx>=0.22.0",
+  "ruff>=0.12.0",
+]
+
+[build-system]
+requires = ["setuptools>=80.0.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.12"
+plugins = []
+strict = true
+mypy_path = "src"

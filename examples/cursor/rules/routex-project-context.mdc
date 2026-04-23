@@ -1,0 +1,11 @@
+---
+description: Shared RouteX context for documentation, architecture, and operational tasks.
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
+- RouteX is a policy-driven control plane for multi-provider AI routing.
+- Treat `configs/schemas` as the contract source for operational documents.
+- Update `docs/adr` for structural decisions that affect more than one surface.
+- Keep backend, frontend, and Tauri concerns separated behind shared configuration contracts.

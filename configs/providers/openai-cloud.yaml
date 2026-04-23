@@ -1,0 +1,62 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: openai-cloud
+  owner: routex
+  labels:
+    displayName: OpenAI Cloud
+    lane: primary
+spec:
+  provider: openai
+  enabled: true
+  endpoints:
+    baseUrl: https://api.openai.com/v1
+  auth:
+    strategy: env
+    envVar: OPENAI_API_KEY
+  capabilities:
+    - chat
+    - responses
+    - embeddings
+    - tools
+    - reasoning
+    - vision
+    - json
+  models:
+    - id: gpt-4.1-mini
+      alias: gpt-4.1-mini
+      upstreamModel: gpt-4.1-mini
+      purpose: chat
+      tier: balanced
+      selectorTags:
+        - balanced
+        - general
+      endpoints:
+        - chat
+        - responses
+      priority: 100
+      weight: 100
+    - id: gpt-5.2-codex
+      alias: gpt-5.2-codex
+      upstreamModel: gpt-5.2-codex
+      purpose: chat
+      tier: reasoning
+      selectorTags:
+        - coding
+        - reasoning
+      endpoints:
+        - chat
+        - responses
+      priority: 90
+      weight: 100
+    - id: text-embedding-3-small
+      alias: text-embedding-3-small
+      upstreamModel: text-embedding-3-small
+      purpose: embeddings
+      tier: balanced
+      selectorTags:
+        - retrieval
+      endpoints:
+        - embeddings
+      priority: 100
+      weight: 100

@@ -1,0 +1,113 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: RouteXConfig
+type: object
+additionalProperties: false
+required:
+  - apiVersion
+  - kind
+  - metadata
+  - spec
+properties:
+  apiVersion:
+    type: string
+    const: routex.dev/v1alpha1
+  kind:
+    type: string
+    const: RouteXConfig
+  metadata:
+    type: object
+    additionalProperties: false
+    required:
+      - name
+    properties:
+      name:
+        type: string
+        minLength: 1
+      owner:
+        type: string
+      labels:
+        type: object
+        additionalProperties:
+          type: string
+  spec:
+    type: object
+    additionalProperties: false
+    required:
+      - environment
+      - gateway
+      - routing
+      - observability
+    properties:
+      environment:
+        type: string
+        enum:
+          - local
+          - dev
+          - staging
+          - prod
+      gateway:
+        type: object
+        additionalProperties: false
+        required:
+          - host
+          - port
+          - publicBaseUrl
+          - adminBaseUrl
+        properties:
+          host:
+            type: string
+            minLength: 1
+          port:
+            type: integer
+            minimum: 1
+            maximum: 65535
+          publicBaseUrl:
+            type: string
+            pattern: "^https?://"
+          adminBaseUrl:
+            type: string
+            pattern: "^https?://"
+      routing:
+        type: object
+        additionalProperties: false
+        required:
+          - defaultProfile
+          - providerRefs
+          - failoverEnabled
+          - requestTimeoutMs
+          - retryBudget
+        properties:
+          defaultProfile:
+            type: string
+            minLength: 1
+          providerRefs:
+            type: array
+            minItems: 1
+            items:
+              type: string
+              minLength: 1
+          failoverEnabled:
+            type: boolean
+          requestTimeoutMs:
+            type: integer
+            minimum: 100
+          retryBudget:
+            type: integer
+            minimum: 0
+      observability:
+        type: object
+        additionalProperties: false
+        required:
+          - auditLogs
+          - redactSensitiveData
+          - metricsEnabled
+          - tracingEnabled
+        properties:
+          auditLogs:
+            type: boolean
+          redactSensitiveData:
+            type: boolean
+          metricsEnabled:
+            type: boolean
+          tracingEnabled:
+            type: boolean

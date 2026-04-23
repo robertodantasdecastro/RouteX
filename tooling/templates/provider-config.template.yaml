@@ -1,0 +1,32 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: provider-name
+  owner: team-name
+  labels:
+    displayName: Provider Name
+spec:
+  provider: openai
+  enabled: true
+  endpoints:
+    baseUrl: https://provider.example.com
+  auth:
+    strategy: env
+    envVar: PROVIDER_API_KEY
+  capabilities:
+    - chat
+    - responses
+    - json
+  models:
+    - id: model-id
+      alias: alias-name
+      upstreamModel: upstream-model-id
+      purpose: chat
+      tier: balanced
+      selectorTags:
+        - default
+      endpoints:
+        - chat
+        - responses
+      weight: 100
+      priority: 100

@@ -1,0 +1,35 @@
+apiVersion: routex.dev/v1alpha1
+kind: RouteProfile
+metadata:
+  name: private-mode
+  owner: routex
+  labels:
+    displayName: Private Mode
+spec:
+  goal: private-mode
+  description: Bloqueia cloud e limita o roteamento a providers locais e mock local.
+  strategy: private_mode
+  localPriority: 100
+  cloudAllowed: false
+  privateMode: true
+  selectors:
+    capabilities:
+      - chat
+      - responses
+    latencyBudgetMs: 4000
+    budgetClass: standard
+    compliance:
+      pii: disallowed
+      dataResidency: strict
+    regionAffinity: local
+  fallbackStrategy: failover
+  candidates:
+    - providerRef: ollama-local
+      modelRef: qwen-coder
+      weight: 100
+    - providerRef: lmstudio-local
+      modelRef: deepseek-local
+      weight: 90
+    - providerRef: mock-dev
+      modelRef: qwen-coder-local
+      weight: 80

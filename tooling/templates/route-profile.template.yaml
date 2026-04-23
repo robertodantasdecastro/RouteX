@@ -1,0 +1,29 @@
+apiVersion: routex.dev/v1alpha1
+kind: RouteProfile
+metadata:
+  name: profile-name
+  owner: team-name
+  labels:
+    displayName: Profile Name
+spec:
+  goal: profile-goal
+  description: Explain how this profile behaves.
+  strategy: balanced
+  localPriority: 50
+  cloudAllowed: true
+  privateMode: false
+  selectors:
+    capabilities:
+      - chat
+      - responses
+    latencyBudgetMs: 3000
+    budgetClass: standard
+    compliance:
+      pii: masked
+      dataResidency: flexible
+    regionAffinity: global
+  fallbackStrategy: weighted
+  candidates:
+    - providerRef: provider-name
+      modelRef: model-id
+      weight: 100

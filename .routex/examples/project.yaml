@@ -1,0 +1,15 @@
+schema_version: "1.0"
+project_id: "example-project"
+display_name: "Example RouteX Project"
+profile_id: "balanced"
+allow_cloud: true
+default_model_alias: "gpt-4.1-mini"
+rules:
+  - rule_id: "private-for-sensitive-model"
+    name: "Prefer private mode for qwen local alias"
+    enabled: true
+    priority: 20
+    matcher:
+      model_alias: "qwen2.5-coder:latest"
+    action:
+      profile_id: "private-mode"

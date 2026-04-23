@@ -1,0 +1,34 @@
+name: Feature Request
+description: Propose a new RouteX capability, workflow, or contract change.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem are we trying to solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the proposed change.
+    validations:
+      required: true
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impacted areas
+      options:
+        - label: backend
+        - label: frontend
+        - label: desktop
+        - label: configs and docs
+  - type: textarea
+    id: followup
+    attributes:
+      label: Follow-up work
+      description: List ADR, schema, or integration work that should ship together.

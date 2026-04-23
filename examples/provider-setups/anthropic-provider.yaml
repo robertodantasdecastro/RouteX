@@ -1,0 +1,33 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: anthropic-example
+  owner: enablement
+  labels:
+    displayName: Anthropic Example
+spec:
+  provider: anthropic
+  enabled: true
+  endpoints:
+    baseUrl: https://api.anthropic.com
+  auth:
+    strategy: env
+    envVar: ANTHROPIC_API_KEY
+  capabilities:
+    - chat
+    - responses
+    - tools
+    - reasoning
+    - json
+  models:
+    - id: claude-sonnet-4-5
+      alias: claude-sonnet-4-5
+      upstreamModel: claude-sonnet-4-5
+      purpose: chat
+      tier: balanced
+      selectorTags:
+        - safety
+        - fallback
+      endpoints:
+        - chat
+        - responses

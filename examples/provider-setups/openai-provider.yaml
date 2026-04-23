@@ -1,0 +1,43 @@
+apiVersion: routex.dev/v1alpha1
+kind: ProviderConfig
+metadata:
+  name: openai-example
+  owner: enablement
+  labels:
+    displayName: OpenAI Example
+spec:
+  provider: openai
+  enabled: true
+  endpoints:
+    baseUrl: https://api.openai.com/v1
+  auth:
+    strategy: env
+    envVar: OPENAI_API_KEY
+  capabilities:
+    - chat
+    - responses
+    - embeddings
+    - tools
+    - reasoning
+    - json
+  models:
+    - id: gpt-4.1-mini
+      alias: gpt-4.1-mini
+      upstreamModel: gpt-4.1-mini
+      purpose: chat
+      tier: balanced
+      selectorTags:
+        - general
+        - production
+      endpoints:
+        - chat
+        - responses
+    - id: text-embedding-3-small
+      alias: text-embedding-3-small
+      upstreamModel: text-embedding-3-small
+      purpose: embeddings
+      tier: balanced
+      selectorTags:
+        - retrieval
+      endpoints:
+        - embeddings

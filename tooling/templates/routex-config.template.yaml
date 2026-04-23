@@ -1,0 +1,24 @@
+apiVersion: routex.dev/v1alpha1
+kind: RouteXConfig
+metadata:
+  name: replace-me
+  owner: team-name
+spec:
+  environment: local
+  gateway:
+    host: 127.0.0.1
+    port: 48200
+    publicBaseUrl: http://127.0.0.1:48200
+    adminBaseUrl: http://127.0.0.1:48200/api/admin/v1
+  routing:
+    defaultProfile: balanced
+    providerRefs:
+      - provider-name
+    failoverEnabled: true
+    requestTimeoutMs: 15000
+    retryBudget: 2
+  observability:
+    auditLogs: true
+    redactSensitiveData: true
+    metricsEnabled: true
+    tracingEnabled: false
