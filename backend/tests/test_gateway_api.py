@@ -22,6 +22,7 @@ def test_health_endpoint(tmp_path, monkeypatch):
         payload = response.json()
         assert payload["app"] == "RouteX Gateway"
         assert payload["settings"]["port"] == 48200
+        assert payload["settings"]["default_profile"] == "private-mode"
         assert len(payload["providers"]) >= 1
 
 
@@ -32,6 +33,8 @@ def test_models_and_chat_roundtrip(tmp_path, monkeypatch):
         models = models_response.json()["data"]
         assert any(model["id"] == "gpt-4.1-mini" for model in models)
         assert any(model["id"] == "qwen2.5-coder:latest" for model in models)
+        assert any(model["id"] == "qwen2.5-coder-3b-pentest" for model in models)
+        assert any(model["id"] == "llama-3.1-8b-kali-pentester" for model in models)
 
         chat_response = client.post(
             "/v1/chat/completions",
@@ -91,12 +94,41 @@ def test_admin_control_plane_and_route_preview(tmp_path, monkeypatch):
         assert settings_response.status_code == 200
         settings_bundle = settings_response.json()
         assert settings_bundle["effective"]["port"] == 48200
+        assert settings_bundle["effective"]["default_profile"] == "private-mode"
 
         preview_response = client.get(
             "/api/admin/v1/routing/preview",
-            params={"model_alias": "qwen2.5-coder:latest", "profile_id": "local-first"},
+            params={"model_alias": "qwen2.5-coder:latest"},
         )
         assert preview_response.status_code == 200
         preview_payload = preview_response.json()
-        assert preview_payload["selected_provider"] in {"ollama-local", "mock-dev"}
+        assert preview_payload["selected_provider"] == "lmstudio-local"
         assert preview_payload["selected_deployment"]
+        assert preview_payload["selected_is_local"] is True
+        assert preview_payload["private_mode"] is True
+
+
+def test_settings_override_changes_default_profile(tmp_path, monkeypatch):
+    with build_client(tmp_path, monkeypatch) as client:
+        response = client.post(
+            "/api/admin/v1/settings",
+            json={
+                "host": "127.0.0.1",
+                "port": 48200,
+                "theme": "dark",
+                "startup_enabled": True,
+                "debug_logging_ttl_minutes": 30,
+                "log_level": "INFO",
+                "default_profile": "local-first",
+                "cursor_model_alias": "qwen2.5-coder-3b-pentest",
+            },
+        )
+        assert response.status_code == 200
+
+        preview_response = client.get(
+            "/api/admin/v1/routing/preview",
+            params={"model_alias": "qwen2.5-coder:latest"},
+        )
+        assert preview_response.status_code == 200
+        preview_payload = preview_response.json()
+        assert preview_payload["profile_id"] == "local-first"

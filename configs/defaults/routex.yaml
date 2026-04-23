@@ -14,7 +14,7 @@ spec:
     publicBaseUrl: http://127.0.0.1:48200
     adminBaseUrl: http://127.0.0.1:48200/api/admin/v1
   routing:
-    defaultProfile: balanced
+    defaultProfile: private-mode
     providerRefs:
       - openai-cloud
       - anthropic-cloud

@@ -21,6 +21,9 @@ pub struct LaunchAgentStatusPayload {
     pub last_exit_status: Option<i32>,
     pub stdout_path: String,
     pub stderr_path: String,
+    pub program: Option<String>,
+    pub args: Vec<String>,
+    pub working_directory: Option<String>,
     pub note: String,
 }
 
@@ -48,87 +51,7 @@ pub fn launch_agent_install(
     state: State<'_, AlphaConfig>,
     request: LaunchAgentInstallRequest,
 ) -> Result<LaunchAgentStatusPayload, String> {
-    let config = state.inner();
-    let label = request
-        .label
-        .unwrap_or_else(|| config.launch_agent_label.clone());
-    let plist_path = plist_path_for_label(&label);
-    let program = request
-        .program
-        .or_else(|| env::var("ROUTEX_DAEMON_PROGRAM").ok())
-        .ok_or_else(|| {
-            "LaunchAgent install requer `program` ou a env ROUTEX_DAEMON_PROGRAM.".to_string()
-        })?;
-    let args = request
-        .args
-        .or_else(|| env::var("ROUTEX_DAEMON_ARGS").ok().map(split_args))
-        .unwrap_or_default();
-    let working_directory = request
-        .working_directory
-        .or_else(|| env::var("ROUTEX_DAEMON_WORKDIR").ok());
-    let environment = request.environment.unwrap_or_else(|| {
-        BTreeMap::from([
-            (
-                "ROUTEX_PUBLIC_BASE_URL".to_string(),
-                config.public_base_url.clone(),
-            ),
-            (
-                "ROUTEX_HEALTHCHECK_URL".to_string(),
-                config.health_url.clone(),
-            ),
-            (
-                "ROUTEX_SECRET_BROKER_SOCKET".to_string(),
-                config.broker_socket_path.display().to_string(),
-            ),
-        ])
-    });
-
-    let logs_dir = config.launch_agent_logs_dir.clone();
-    fs::create_dir_all(
-        plist_path
-            .parent()
-            .unwrap_or_else(|| std::path::Path::new(".")),
-    )
-    .map_err(|error| format!("Falha ao criar diretorio LaunchAgents: {error}"))?;
-    fs::create_dir_all(&logs_dir)
-        .map_err(|error| format!("Falha ao criar diretorio de logs do LaunchAgent: {error}"))?;
-
-    let stdout_path = request
-        .stdout_path
-        .unwrap_or_else(|| logs_dir.join("daemon.stdout.log").display().to_string());
-    let stderr_path = request
-        .stderr_path
-        .unwrap_or_else(|| logs_dir.join("daemon.stderr.log").display().to_string());
-
-    let plist = render_launch_agent_plist(
-        &label,
-        &program,
-        &args,
-        working_directory.as_deref(),
-        &environment,
-        request.run_at_load.unwrap_or(true),
-        request.keep_alive.unwrap_or(true),
-        &stdout_path,
-        &stderr_path,
-    );
-
-    fs::write(&plist_path, plist)
-        .map_err(|error| format!("Falha ao gravar plist do LaunchAgent: {error}"))?;
-    run_launchctl(&["bootout", &launchctl_service_target(&label)]).ok();
-    run_launchctl(&[
-        "bootstrap",
-        &launchctl_gui_target(),
-        plist_path.to_string_lossy().as_ref(),
-    ])?;
-    run_launchctl(&["enable", &launchctl_service_target(&label)]).ok();
-    run_launchctl(&["kickstart", "-k", &launchctl_service_target(&label)]).ok();
-
-    Ok(status_for_label(
-        &label,
-        &plist_path,
-        &stdout_path,
-        &stderr_path,
-    ))
+    install_from_request(state.inner(), request)
 }
 
 #[tauri::command]
@@ -160,6 +83,9 @@ pub fn launch_agent_uninstall(
         &plist_path,
         &stdout_path,
         &stderr_path,
+        Some(config.daemon_program.clone()),
+        config.daemon_args.clone(),
+        Some(config.daemon_working_directory.display().to_string()),
     ))
 }
 
@@ -179,7 +105,102 @@ fn status_from_config(config: &AlphaConfig) -> LaunchAgentStatusPayload {
         &config.launch_agent_plist_path,
         &stdout_path,
         &stderr_path,
+        Some(config.daemon_program.clone()),
+        config.daemon_args.clone(),
+        Some(config.daemon_working_directory.display().to_string()),
     )
+}
+
+pub fn install_default_from_config(
+    config: &AlphaConfig,
+) -> Result<LaunchAgentStatusPayload, String> {
+    install_from_request(
+        config,
+        LaunchAgentInstallRequest {
+            label: None,
+            program: None,
+            args: None,
+            working_directory: None,
+            environment: None,
+            run_at_load: Some(true),
+            keep_alive: Some(true),
+            stdout_path: None,
+            stderr_path: None,
+        },
+    )
+}
+
+fn install_from_request(
+    config: &AlphaConfig,
+    request: LaunchAgentInstallRequest,
+) -> Result<LaunchAgentStatusPayload, String> {
+    let LaunchAgentInstallRequest {
+        label,
+        program,
+        args,
+        working_directory,
+        environment,
+        run_at_load,
+        keep_alive,
+        stdout_path,
+        stderr_path,
+    } = request;
+
+    let label = label.unwrap_or_else(|| config.launch_agent_label.clone());
+    let plist_path = plist_path_for_label(&label);
+    let program = program.unwrap_or_else(|| config.daemon_program.clone());
+    let args = args.unwrap_or_else(|| config.daemon_args.clone());
+    let working_directory =
+        working_directory.unwrap_or_else(|| config.daemon_working_directory.display().to_string());
+    let environment = environment.unwrap_or_else(|| config.daemon_environment.clone());
+
+    let logs_dir = config.launch_agent_logs_dir.clone();
+    fs::create_dir_all(
+        plist_path
+            .parent()
+            .unwrap_or_else(|| std::path::Path::new(".")),
+    )
+    .map_err(|error| format!("Falha ao criar diretorio LaunchAgents: {error}"))?;
+    fs::create_dir_all(&logs_dir)
+        .map_err(|error| format!("Falha ao criar diretorio de logs do LaunchAgent: {error}"))?;
+
+    let stdout_path =
+        stdout_path.unwrap_or_else(|| logs_dir.join("daemon.stdout.log").display().to_string());
+    let stderr_path =
+        stderr_path.unwrap_or_else(|| logs_dir.join("daemon.stderr.log").display().to_string());
+
+    let plist = render_launch_agent_plist(
+        &label,
+        &program,
+        &args,
+        Some(working_directory.as_str()),
+        &environment,
+        run_at_load.unwrap_or(true),
+        keep_alive.unwrap_or(true),
+        &stdout_path,
+        &stderr_path,
+    );
+
+    fs::write(&plist_path, plist)
+        .map_err(|error| format!("Falha ao gravar plist do LaunchAgent: {error}"))?;
+    run_launchctl(&["bootout", &launchctl_service_target(&label)]).ok();
+    run_launchctl(&[
+        "bootstrap",
+        &launchctl_gui_target(),
+        plist_path.to_string_lossy().as_ref(),
+    ])?;
+    run_launchctl(&["enable", &launchctl_service_target(&label)]).ok();
+    run_launchctl(&["kickstart", "-k", &launchctl_service_target(&label)]).ok();
+
+    Ok(status_for_label(
+        &label,
+        &plist_path,
+        &stdout_path,
+        &stderr_path,
+        Some(program),
+        args,
+        Some(working_directory),
+    ))
 }
 
 fn status_for_label(
@@ -187,6 +208,9 @@ fn status_for_label(
     plist_path: &PathBuf,
     stdout_path: &str,
     stderr_path: &str,
+    program: Option<String>,
+    args: Vec<String>,
+    working_directory: Option<String>,
 ) -> LaunchAgentStatusPayload {
     let installed = plist_path.exists();
     let print_output = Command::new("/bin/launchctl")
@@ -226,6 +250,9 @@ fn status_for_label(
         last_exit_status,
         stdout_path: stdout_path.to_string(),
         stderr_path: stderr_path.to_string(),
+        program,
+        args,
+        working_directory,
         note,
     }
 }
@@ -350,10 +377,6 @@ fn plist_path_for_label(label: &str) -> PathBuf {
     PathBuf::from(home)
         .join("Library/LaunchAgents")
         .join(format!("{label}.plist"))
-}
-
-fn split_args(raw: String) -> Vec<String> {
-    raw.split_whitespace().map(ToOwned::to_owned).collect()
 }
 
 fn parse_launchctl_integer(output: &str, marker: &str) -> Option<i32> {

@@ -2,6 +2,8 @@
 
 RouteX is a local AI router with an OpenAI-compatible endpoint, designed for Cursor IDE and other developer tools that need a single local gateway with clearer routing, safer defaults, and a lighter operator experience.
 
+Current internal build: `0.2.0-alpha`
+
 This repository already includes a working implementation baseline across three execution surfaces:
 
 - a backend gateway responsible for policy evaluation, provider orchestration, security, and observability
@@ -43,12 +45,38 @@ make test
 
 This bootstraps the repo-wide tooling environment, syncs backend dependencies with `uv`, installs frontend dependencies with `pnpm`, validates YAML contracts, and runs the baseline test suite.
 
+## Alpha Installer Flow
+
+```bash
+make package-macos
+make install-alpha
+make test-operational
+make certify-openai-client
+```
+
+This is the official internal alpha path on macOS. It generates the `.app` and `.dmg`, installs `RouteX.app` into `/Applications`, opens the installed app, and runs the operational battery against the active local provider, plus `mock-dev` for contract coverage.
+
+Operational references:
+
+- Alpha install guide: [docs/development/install-alpha-macos.md](docs/development/install-alpha-macos.md)
+- Alpha acceptance checklist: [docs/testing/alpha-operational-checklist.md](docs/testing/alpha-operational-checklist.md)
+- OpenAI-compatible smoke client: [examples/openai-compatible/README.md](examples/openai-compatible/README.md)
+
 ## Run The App
 
 ```bash
 make run-gateway
 make run-frontend
 ```
+
+## Local Operator Commands
+
+```bash
+make smoke-local-client
+make certify-openai-client
+```
+
+These commands use the official OpenAI Python SDK against the RouteX endpoint. `make smoke-local-client` is the fastest local smoke for the active local alias. `make certify-openai-client` writes a timestamped evidence bundle under `tooling/artifacts/openai-client/`.
 
 Default local endpoints:
 
@@ -66,7 +94,7 @@ Default local endpoints:
 - Real adapter base for OpenAI-compatible providers plus explicit Anthropic and Bedrock adapters
 - Credentials manager with `env://`, `aws://`, and `keychain://service/account` resolution
 - React operator UI with Overview, Providers, Models, Routes, Requests, Settings, and Onboarding screens aligned to `versioned`, `override`, and `effective`
-- Tauri desktop shell with daemon status checks, alpha Keychain broker, LaunchAgent helpers, tray/menu bar actions, and branding-ready packaging config
+- Tauri desktop shell with first-run runtime extraction, daemon bootstrap, alpha Keychain broker, LaunchAgent helpers, tray/menu bar actions, and packaging for `.app` + `.dmg`
 - Imported RouteX branding assets wired into the UI and repo structure
 
 ## Core Documents
@@ -76,6 +104,7 @@ Default local endpoints:
 - Development setup: [docs/development/local-setup.md](docs/development/local-setup.md)
 - Configuration contracts: [docs/api/config-contracts.md](docs/api/config-contracts.md)
 - Testing strategy: [docs/testing/strategy.md](docs/testing/strategy.md)
+- Alpha operational checklist: [docs/testing/alpha-operational-checklist.md](docs/testing/alpha-operational-checklist.md)
 - Security baseline: [docs/security/baseline.md](docs/security/baseline.md)
 - Provider model: [docs/providers/provider-model.md](docs/providers/provider-model.md)
 - Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
@@ -93,4 +122,7 @@ Default local endpoints:
 - The UI is already aligned to the new control-plane bundles, but richer edit flows for providers/profiles/rules/settings still need hardening
 - Streaming pass-through and more complete response normalization still need hardening across all upstream adapters
 - The tray/menu bar is functional, but not yet reactive to live daemon status changes
-- The alpha Keychain broker and LaunchAgent flow still need notarization, stronger auth boundaries, and recovery polish before public release
+- Cursor free accounts still block named local models in the `Agent` and `Ask` surfaces before any request reaches RouteX; use the OpenAI SDK certification path until the Cursor account permits named BYOK models
+- The alpha installer is intentionally unsigned and non-notarized; Gatekeeper workarounds are documented for internal use only
+- The alpha Keychain broker and LaunchAgent flow still need stronger auth boundaries and recovery polish before public release
+- Public release hardening still excludes Apple signing/notarization and full cloud-provider certification

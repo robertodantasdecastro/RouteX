@@ -24,12 +24,18 @@ spec:
     regionAffinity: local
   fallbackStrategy: failover
   candidates:
-    - providerRef: ollama-local
-      modelRef: qwen-coder
+    - providerRef: lmstudio-local
+      modelRef: qwen-coder-local
       weight: 100
     - providerRef: lmstudio-local
+      modelRef: qwen-coder-pentest
+      weight: 95
+    - providerRef: ollama-local
+      modelRef: qwen-coder
+      weight: 85
+    - providerRef: lmstudio-local
       modelRef: deepseek-local
-      weight: 90
+      weight: 80
     - providerRef: mock-dev
       modelRef: qwen-coder-local
-      weight: 80
+      weight: 70

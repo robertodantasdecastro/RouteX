@@ -47,6 +47,7 @@ export const adminApi = {
   profiles: () => getJson<ControlPlaneListBundle<Profile>>(`${adminBase}/profiles`),
   rules: () => getJson<ControlPlaneListBundle<Rule>>(`${adminBase}/rules`),
   settings: () => getJson<SettingsBundle>(`${adminBase}/settings`),
+  upsertSettings: (payload: Settings) => postJson<Settings>(`${adminBase}/settings`, payload),
   metrics: () => getJson<MetricSnapshot>(`${adminBase}/metrics`),
   requests: () => getJson<RequestLog[]>(`${adminBase}/requests`),
   models: () => getJson<ModelsResponse>(`${publicBase}/v1/models`),

@@ -2,6 +2,7 @@
 
 use tauri::Manager;
 
+mod bootstrap;
 mod ipc;
 mod keychain;
 mod launch_agent;
@@ -9,11 +10,9 @@ mod state;
 mod tray;
 
 fn main() {
-    let config = state::AlphaConfig::from_env();
-
     tauri::Builder::default()
-        .manage(config.clone())
         .invoke_handler(tauri::generate_handler![
+            bootstrap::bootstrap_status,
             ipc::app_health,
             ipc::daemon_status,
             ipc::copy_public_base_url,
@@ -27,8 +26,13 @@ fn main() {
             tray::tray_status,
         ])
         .setup(|app| {
-            let config = app.state::<state::AlphaConfig>().inner().clone();
-            app.manage(keychain::setup_broker(&config));
+            let config = state::AlphaConfig::from_app(app.handle());
+            app.manage(config.clone());
+            let broker = keychain::setup_broker(&config);
+            let broker_ready = config.broker_socket_path.exists();
+            app.manage(broker);
+            let bootstrap_status = bootstrap::bootstrap_alpha_runtime(app, &config, broker_ready);
+            app.manage(bootstrap::BootstrapState::with_status(bootstrap_status));
             tray::setup(app)?;
             Ok(())
         })

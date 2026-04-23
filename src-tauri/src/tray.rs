@@ -1,11 +1,17 @@
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
-use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::tray::TrayIconBuilder;
 use tauri::{Manager, State};
 
+use crate::bootstrap::BootstrapState;
 use crate::ipc;
 use crate::state::AlphaConfig;
 
+const MENU_TITLE: &str = "tray.title";
+const MENU_DAEMON_STATUS: &str = "tray.daemon_status";
+const MENU_LAUNCH_AGENT: &str = "tray.launch_agent";
+const MENU_SHORTCUT: &str = "tray.shortcut";
+const MENU_BASE_URL_STATUS: &str = "tray.base_url_status";
 const MENU_OPEN: &str = "tray.open";
 const MENU_COPY_BASE_URL: &str = "tray.copy_base_url";
 const MENU_QUIT: &str = "tray.quit";
@@ -15,16 +21,60 @@ const MENU_QUIT: &str = "tray.quit";
 pub struct TrayStatusPayload {
     pub enabled: bool,
     pub base_url: String,
+    pub daemon_status: String,
+    pub launch_agent_loaded: bool,
+    pub desktop_shortcut_path: Option<String>,
+    pub desktop_shortcut_ready: bool,
     pub menu_items: Vec<&'static str>,
     pub note: String,
 }
 
 pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
     let config = app.state::<AlphaConfig>().inner().clone();
+    let bootstrap = app.state::<BootstrapState>().inner().snapshot();
+    let daemon = ipc::daemon_status_from_config(&config, None);
     let menu = Menu::new(app)?;
-    let status_item = MenuItem::with_id(
+    let title_item =
+        MenuItem::with_id(app, MENU_TITLE, "RouteX Dashboard", false, None::<&str>)?;
+    let daemon_status_item = MenuItem::with_id(
         app,
-        "tray.status",
+        MENU_DAEMON_STATUS,
+        format!("Daemon: {}", daemon.status),
+        false,
+        None::<&str>,
+    )?;
+    let launch_agent_item = MenuItem::with_id(
+        app,
+        MENU_LAUNCH_AGENT,
+        format!(
+            "LaunchAgent: {}",
+            if bootstrap.launch_agent_loaded {
+                "loaded"
+            } else if bootstrap.launch_agent_installed {
+                "installed"
+            } else {
+                "missing"
+            }
+        ),
+        false,
+        None::<&str>,
+    )?;
+    let shortcut_item = MenuItem::with_id(
+        app,
+        MENU_SHORTCUT,
+        format!(
+            "Mesa: {}",
+            bootstrap
+                .desktop_shortcut_path
+                .clone()
+                .unwrap_or_else(|| "atalho indisponivel".to_string())
+        ),
+        false,
+        None::<&str>,
+    )?;
+    let base_url_item = MenuItem::with_id(
+        app,
+        MENU_BASE_URL_STATUS,
         format!("Base URL: {}", config.public_base_url),
         false,
         None::<&str>,
@@ -35,7 +85,11 @@ pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
     let separator = PredefinedMenuItem::separator(app)?;
     let quit_item = MenuItem::with_id(app, MENU_QUIT, "Quit", true, None::<&str>)?;
 
-    menu.append(&status_item)?;
+    menu.append(&title_item)?;
+    menu.append(&daemon_status_item)?;
+    menu.append(&launch_agent_item)?;
+    menu.append(&shortcut_item)?;
+    menu.append(&base_url_item)?;
     menu.append(&open_item)?;
     menu.append(&copy_item)?;
     menu.append(&separator)?;
@@ -44,7 +98,7 @@ pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
     let mut builder = TrayIconBuilder::with_id("routex-alpha")
         .menu(&menu)
         .tooltip("RouteX")
-        .show_menu_on_left_click(false)
+        .show_menu_on_left_click(true)
         .icon_as_template(true)
         .on_menu_event(move |app, event| match event.id().as_ref() {
             MENU_OPEN => {
@@ -58,18 +112,6 @@ pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
                 app.exit(0);
             }
             _ => {}
-        })
-        .on_tray_icon_event(move |tray, event| {
-            if let TrayIconEvent::Click {
-                button,
-                button_state,
-                ..
-            } = event
-            {
-                if button == MouseButton::Left && button_state == MouseButtonState::Up {
-                    let _ = ipc::reveal_main_window(tray.app_handle());
-                }
-            }
         });
 
     if let Some(icon) = app.default_window_icon().cloned() {
@@ -81,11 +123,30 @@ pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
 }
 
 #[tauri::command]
-pub fn tray_status(state: State<'_, AlphaConfig>) -> TrayStatusPayload {
+pub fn tray_status(
+    state: State<'_, AlphaConfig>,
+    bootstrap: State<'_, BootstrapState>,
+) -> TrayStatusPayload {
+    let daemon = ipc::daemon_status_from_config(state.inner(), None);
+    let bootstrap = bootstrap.inner().snapshot();
     TrayStatusPayload {
         enabled: true,
         base_url: state.public_base_url.clone(),
-        menu_items: vec![MENU_OPEN, MENU_COPY_BASE_URL, MENU_QUIT],
-        note: "Tray alpha com abrir janela, copiar base URL e sair.".to_string(),
+        daemon_status: daemon.status,
+        launch_agent_loaded: bootstrap.launch_agent_loaded,
+        desktop_shortcut_path: bootstrap.desktop_shortcut_path,
+        desktop_shortcut_ready: state.desktop_shortcut_path.exists(),
+        menu_items: vec![
+            MENU_TITLE,
+            MENU_DAEMON_STATUS,
+            MENU_LAUNCH_AGENT,
+            MENU_SHORTCUT,
+            MENU_BASE_URL_STATUS,
+            MENU_OPEN,
+            MENU_COPY_BASE_URL,
+            MENU_QUIT,
+        ],
+        note: "Tray alpha com dashboard operacional, abrir app, copiar Base URL e sair."
+            .to_string(),
     }
 }

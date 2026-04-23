@@ -18,6 +18,53 @@ spec:
     - responses
     - json
   models:
+    - id: qwen-coder-local
+      alias: qwen2.5-coder:latest
+      upstreamModel: qwen2.5-coder-3b-instruct-distill-qwen3-coder-next-abliterated
+      purpose: chat
+      tier: local
+      selectorTags:
+        - local
+        - coding
+        - lmstudio
+      endpoints:
+        - chat
+        - responses
+      priority: 40
+      weight: 100
+      isLocal: true
+    - id: qwen-coder-pentest
+      alias: qwen2.5-coder-3b-pentest
+      upstreamModel: qwen2.5-coder-3b-pentest
+      purpose: chat
+      tier: local
+      selectorTags:
+        - local
+        - coding
+        - pentest
+        - lmstudio
+      endpoints:
+        - chat
+        - responses
+      priority: 45
+      weight: 95
+      isLocal: true
+    - id: llama-kali-pentester
+      alias: llama-3.1-8b-kali-pentester
+      upstreamModel: llama-3.1-8b-kali-pentester
+      purpose: chat
+      tier: local
+      selectorTags:
+        - local
+        - security
+        - pentest
+        - lmstudio
+      endpoints:
+        - chat
+        - responses
+      priority: 50
+      weight: 90
+      isLocal: true
     - id: deepseek-local
       alias: deepseek-r1-distill-qwen-14b
       upstreamModel: deepseek-r1-distill-qwen-14b

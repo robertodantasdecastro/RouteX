@@ -351,6 +351,10 @@ class ManifestService:
     def versioned_settings(self) -> SettingsDefinition:
         snapshot = self.get_snapshot()
         routex_config = snapshot.routex_config
+        default_profile = routex_config.spec.routing.defaultProfile
+        default_model_alias = snapshot.profiles[default_profile].metadata.get(
+            "default_model_alias", "qwen2.5-coder:latest"
+        )
         return SettingsDefinition(
             host=routex_config.spec.gateway.host,
             port=routex_config.spec.gateway.port,
@@ -358,6 +362,8 @@ class ManifestService:
             startup_enabled=True,
             debug_logging_ttl_minutes=30,
             log_level="INFO",
+            default_profile=default_profile,
+            cursor_model_alias=str(default_model_alias),
         )
 
 

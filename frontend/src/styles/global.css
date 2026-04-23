@@ -424,6 +424,40 @@ th {
   font-weight: 700;
 }
 
+.management-form {
+  display: grid;
+  gap: 14px;
+}
+
+.management-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.management-form select,
+.management-form input {
+  border: 1px solid rgba(116, 176, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 14px;
+  padding: 12px 14px;
+  color: var(--text);
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+}
+
+.button-row button {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--cyan), var(--violet));
+  color: #06101e;
+  font-weight: 700;
+}
+
 .inline-feedback {
   padding: 12px 14px;
   border-radius: 14px;
@@ -434,6 +468,12 @@ th {
   color: var(--danger);
   background: rgba(255, 111, 120, 0.1);
   border: 1px solid rgba(255, 111, 120, 0.18);
+}
+
+.inline-feedback.success {
+  color: var(--success);
+  background: rgba(43, 218, 142, 0.1);
+  border: 1px solid rgba(43, 218, 142, 0.18);
 }
 
 .empty-state {

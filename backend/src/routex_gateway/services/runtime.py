@@ -290,6 +290,9 @@ class RouteXRuntime:
             "profile_id": routed.profile.profile_id,
             "selected_provider": routed.provider.provider_id,
             "selected_deployment": routed.deployment.deployment_id,
+            "selected_is_local": routed.deployment.is_local,
+            "cloud_allowed": routed.profile.cloud_allowed,
+            "private_mode": routed.profile.private_mode,
             "fallback_chain": routed.envelope.fallback_chain,
         }
 

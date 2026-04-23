@@ -1,6 +1,6 @@
 [project]
 name = "routex-gateway"
-version = "0.1.0"
+version = "0.2.0a0"
 description = "Local AI router gateway for RouteX"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -26,6 +26,9 @@ dev = [
   "pytest-asyncio>=1.0.0",
   "respx>=0.22.0",
   "ruff>=0.12.0",
+]
+ops = [
+  "openai>=1.108.0",
 ]
 
 [build-system]

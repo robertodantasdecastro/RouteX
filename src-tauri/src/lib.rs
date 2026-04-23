@@ -1,3 +1,4 @@
+pub mod bootstrap;
 pub mod ipc;
 pub mod keychain;
 pub mod launch_agent;

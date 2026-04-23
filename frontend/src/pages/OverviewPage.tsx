@@ -1,17 +1,46 @@
-import { getRuntimeV1BaseUrl } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { adminApi, getRuntimeV1BaseUrl } from "@/lib/api";
 import { Panel } from "@/components/Panel";
 import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { shellApi } from "@/lib/shell";
 
 export function OverviewPage() {
   const { health, metrics, providers, profiles, requests, settings } = useDashboardData();
+  const shellHealth = useQuery({
+    queryKey: ["shell-app-health"],
+    queryFn: shellApi.appHealth,
+  });
+  const bootstrapStatus = useQuery({
+    queryKey: ["shell-bootstrap-status"],
+    queryFn: shellApi.bootstrapStatus,
+  });
+  const launchAgent = useQuery({
+    queryKey: ["shell-launch-agent-status"],
+    queryFn: shellApi.launchAgentStatus,
+  });
+  const trayStatus = useQuery({
+    queryKey: ["shell-tray-status"],
+    queryFn: shellApi.trayStatus,
+  });
+  const cursorModelAlias = settings.data?.effective.cursor_model_alias;
+  const cursorProfile = settings.data?.effective.default_profile;
+  const cursorRoute = useQuery({
+    queryKey: ["overview-cursor-route", cursorModelAlias, cursorProfile],
+    queryFn: () =>
+      adminApi.previewRoute({
+        model_alias: cursorModelAlias ?? "",
+        profile_id: cursorProfile,
+      }),
+    enabled: Boolean(cursorModelAlias && cursorProfile),
+  });
 
-  if (health.isLoading) {
+  if (health.isLoading && !health.data) {
     return <div className="empty-state">Carregando runtime do RouteX...</div>;
   }
 
-  if (health.error || !health.data) {
+  if (!health.data) {
     return <div className="empty-state error">Nao foi possivel carregar o daemon local.</div>;
   }
 
@@ -82,6 +111,46 @@ export function OverviewPage() {
           </div>
         </Panel>
 
+        <Panel
+          title="Cursor local-only"
+          subtitle="Certificacao rapida da rota efetiva usada pelo alias sugerido para o Cursor."
+        >
+          {cursorRoute.isLoading ? (
+            <div className="empty-state">Validando trilha local do Cursor...</div>
+          ) : cursorRoute.error || !cursorRoute.data ? (
+            <div className="empty-state error">
+              Nao foi possivel validar a rota padrao do Cursor neste momento.
+            </div>
+          ) : (
+            <div className="stack-list">
+              <div className="stack-row">
+                <span>Alias configurado</span>
+                <code>{cursorModelAlias}</code>
+              </div>
+              <div className="stack-row">
+                <span>Profile efetivo</span>
+                <strong>{cursorRoute.data.profile_id}</strong>
+              </div>
+              <div className="stack-row">
+                <span>Provider selecionado</span>
+                <strong>{cursorRoute.data.selected_provider}</strong>
+              </div>
+              <div className="stack-row">
+                <span>Modo privado</span>
+                <strong>{cursorRoute.data.private_mode ? "ativo" : "desligado"}</strong>
+              </div>
+              <div className="stack-row">
+                <span>Interferencia remota</span>
+                <strong>
+                  {cursorRoute.data.private_mode && cursorRoute.data.selected_is_local
+                    ? "bloqueada"
+                    : "possivel"}
+                </strong>
+              </div>
+            </div>
+          )}
+        </Panel>
+
         <Panel title="Control plane" subtitle="Manifestos, overrides locais e saude operacional.">
           <div className="stack-list">
             <div className="stack-row">
@@ -108,6 +177,40 @@ export function OverviewPage() {
               <strong>{topErrorClass ? `${topErrorClass[0]} (${topErrorClass[1]})` : "nenhum"}</strong>
             </div>
           </div>
+        </Panel>
+
+        <Panel
+          title="Shell macOS"
+          subtitle="Bootstrap da app, LaunchAgent, atalho na Mesa e dashboard da menu bar."
+        >
+          {bootstrapStatus.error || shellHealth.error ? (
+            <div className="empty-state">
+              Shell Tauri indisponivel nesta execucao ou fora da app desktop.
+            </div>
+          ) : (
+            <div className="stack-list">
+              <div className="stack-row">
+                <span>Daemon shell</span>
+                <StatusBadge status={shellHealth.data?.daemon.status ?? "down"} />
+              </div>
+              <div className="stack-row">
+                <span>Bootstrap</span>
+                <strong>{bootstrapStatus.data?.ready ? "pronto" : "pendente"}</strong>
+              </div>
+              <div className="stack-row">
+                <span>LaunchAgent</span>
+                <strong>{launchAgent.data?.loaded ? "carregado" : "nao carregado"}</strong>
+              </div>
+              <div className="stack-row">
+                <span>Atalho na Mesa</span>
+                <code>{bootstrapStatus.data?.desktopShortcutPath ?? "indisponivel"}</code>
+              </div>
+              <div className="stack-row">
+                <span>Menu bar</span>
+                <strong>{trayStatus.data?.enabled ? "ativo" : "indisponivel"}</strong>
+              </div>
+            </div>
+          )}
         </Panel>
 
         <Panel title="Ultimas requests" subtitle="Auditoria local resumida e fallback chain.">

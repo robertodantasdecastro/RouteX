@@ -173,6 +173,8 @@ class SettingsDefinition(BaseModel):
     startup_enabled: bool = True
     debug_logging_ttl_minutes: int = 30
     log_level: str = "INFO"
+    default_profile: str = "balanced"
+    cursor_model_alias: str = "qwen2.5-coder:latest"
 
 
 class ProjectConfig(BaseModel):

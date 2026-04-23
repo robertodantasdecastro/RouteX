@@ -2,15 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+export ROUTEX_RUNTIME_ROOT="${ROOT_DIR}"
+export ROUTEX_STATE_DIR="${ROOT_DIR}/var/state"
+export ROUTEX_LOGS_DIR="${ROOT_DIR}/var/logs"
+export ROUTEX_DAEMON_PID_FILE="${ROOT_DIR}/var/state/daemon.pid"
 
-if [ -x "${ROOT_DIR}/backend/.venv/bin/python" ]; then
-  "${ROOT_DIR}/backend/.venv/bin/python" -m uvicorn routex_gateway.main:app \
-    --host 127.0.0.1 \
-    --port 48200 \
-    --app-dir "${ROOT_DIR}/backend/src"
-else
-  uv run --project "${ROOT_DIR}/backend" uvicorn routex_gateway.main:app \
-    --host 127.0.0.1 \
-    --port 48200 \
-    --app-dir "${ROOT_DIR}/backend/src"
-fi
+exec "${ROOT_DIR}/scripts/runtime/run-gateway-alpha.sh"

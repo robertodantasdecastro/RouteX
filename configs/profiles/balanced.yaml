@@ -34,6 +34,9 @@ spec:
     - providerRef: bedrock-foundation
       modelRef: claude-sonnet-bedrock
       weight: 75
+    - providerRef: lmstudio-local
+      modelRef: qwen-coder-local
+      weight: 55
     - providerRef: ollama-local
       modelRef: qwen-coder
       weight: 45

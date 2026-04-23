@@ -17,7 +17,8 @@ export function OnboardingPage() {
   const generatedProjectToken = useAppStore((state) => state.generatedProjectToken);
   const { health, settings, models, profiles } = useDashboardData();
 
-  const effectiveModelAlias = selectedModel || models.data?.data[0]?.id || "";
+  const effectiveModelAlias =
+    selectedModel || settings.data?.effective.cursor_model_alias || models.data?.data[0]?.id || "";
   const deferredProjectId = useDeferredValue(projectId.trim());
   const deferredModelAlias = useDeferredValue(effectiveModelAlias);
   const deferredProfileId = useDeferredValue(selectedProfile);
@@ -153,6 +154,10 @@ export function OnboardingPage() {
             <span>Model sugerido</span>
             <code>{effectiveModelAlias || "Aguardando models"}</code>
           </div>
+          <div className="stack-row">
+            <span>Profile padrao</span>
+            <strong>{settings.data?.effective.default_profile ?? "n/a"}</strong>
+          </div>
         </div>
       </Panel>
 
@@ -172,6 +177,14 @@ export function OnboardingPage() {
             <div className="stack-row">
               <span>Provider selecionado</span>
               <strong>{routePreview.data.selected_provider}</strong>
+            </div>
+            <div className="stack-row">
+              <span>Somente local</span>
+              <strong>
+                {routePreview.data.private_mode && routePreview.data.selected_is_local
+                  ? "sim"
+                  : "nao"}
+              </strong>
             </div>
             <div className="stack-row">
               <span>Deployment selecionado</span>

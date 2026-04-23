@@ -15,6 +15,7 @@ def test_root_operational_files_exist() -> None:
         "Makefile",
         "LICENSE",
         ".github/workflows/ci.yml",
+        ".github/workflows/release-macos.yml",
     ]
 
     missing = [path for path in expected_files if not (ROOT_DIR / path).exists()]
@@ -26,9 +27,15 @@ def test_key_docs_and_examples_exist() -> None:
         "docs/architecture/overview.md",
         "docs/adr/0001-contract-first-repository-baseline.md",
         "docs/api/config-contracts.md",
+        "docs/development/install-alpha-macos.md",
+        "docs/testing/alpha-operational-checklist.md",
         "examples/cursor/rules/routex-project-context.mdc",
+        "examples/openai-compatible/README.md",
         "examples/provider-setups/openai-provider.yaml",
         "configs/schemas/routex-config.schema.yaml",
+        "scripts/dev/routex_openai_client.py",
+        "scripts/dev/smoke-local-client.sh",
+        "scripts/dev/certify-openai-client.sh",
         "tooling/pre-commit/pre-commit-config.yaml",
     ]
 

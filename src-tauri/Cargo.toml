@@ -1,6 +1,6 @@
 [package]
 name = "routex-desktop"
-version = "0.1.0"
+version = "0.2.0-alpha"
 description = "RouteX desktop shell"
 authors = ["Roberto Dantas de Castro"]
 edition = "2021"
@@ -10,7 +10,7 @@ name = "routex_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.2.0" }
+tauri-build = { version = "2.2.0", features = [] }
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }

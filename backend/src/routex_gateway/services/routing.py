@@ -12,6 +12,7 @@ from routex_gateway.domain.models import (
     ProviderDefinition,
     RequestEnvelope,
     RoutedRequest,
+    SettingsDefinition,
     RouteXRequestMetadata,
     RoutingStrategy,
 )
@@ -87,6 +88,7 @@ class RoutingEngine:
         profiles = {
             profile.profile_id: profile for profile in await self._catalog.list_profiles(session)
         }
+        settings = await self._catalog.effective_settings(session)
         rules = await RuleRepository(session).list()
         project_config: ProjectConfig | None = None
         if context.project_id and project_config_loader is not None:
@@ -94,7 +96,9 @@ class RoutingEngine:
             if project_config:
                 rules = [*project_config.rules, *rules]
 
-        profile = self._choose_profile(context, profiles, rules, metadata, project_config)
+        profile = self._choose_profile(
+            context, profiles, rules, metadata, project_config, settings
+        )
         if project_config and project_config.allow_cloud is not None:
             profile = profile.model_copy(update={"cloud_allowed": project_config.allow_cloud})
         candidates = self._build_candidates(
@@ -134,6 +138,7 @@ class RoutingEngine:
         rules,
         metadata: RouteXRequestMetadata,
         project_config: ProjectConfig | None,
+        settings: SettingsDefinition,
     ) -> ProfileDefinition:
         if metadata.privacy_mode and "private-mode" in profiles:
             return profiles["private-mode"]
@@ -152,7 +157,7 @@ class RoutingEngine:
             if rule.action.profile_id and rule.action.profile_id in profiles:
                 return profiles[rule.action.profile_id]
 
-        default_profile = self._catalog.snapshot().routex_config.spec.routing.defaultProfile
+        default_profile = settings.default_profile
         return profiles[default_profile]
 
     def _build_candidates(

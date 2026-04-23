@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: help bootstrap bootstrap-hooks validate validate-schemas test test-backend build-frontend run-gateway run-frontend ci release-notes package-manifests
+.PHONY: help bootstrap bootstrap-hooks validate validate-schemas test test-backend build-frontend run-gateway run-frontend ci release-notes package-manifests package-macos install-alpha test-operational smoke-local-client certify-openai-client
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## ' Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "%-20s %s\n", $$1, $$2}'
@@ -38,3 +38,18 @@ release-notes: ## Print the current release note draft
 
 package-manifests: ## Package operational manifests for handoff
 	./scripts/packaging/package-manifests.sh
+
+package-macos: ## Build the RouteX alpha macOS app bundle and DMG
+	./scripts/release/package-macos-alpha.sh
+
+install-alpha: ## Install the latest RouteX alpha DMG into /Applications
+	./scripts/packaging/install-alpha.sh
+
+test-operational: ## Run the RouteX alpha operational battery on this Mac
+	./scripts/packaging/test-operational.sh
+
+smoke-local-client: ## Run the local OpenAI-compatible smoke client against RouteX
+	./scripts/dev/smoke-local-client.sh
+
+certify-openai-client: ## Certify the local RouteX stack with the OpenAI SDK and save artifacts
+	./scripts/dev/certify-openai-client.sh

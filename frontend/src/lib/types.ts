@@ -119,6 +119,8 @@ export type Settings = {
   startup_enabled: boolean;
   debug_logging_ttl_minutes: number;
   log_level: string;
+  default_profile: string;
+  cursor_model_alias: string;
 };
 
 export type HealthPayload = {
@@ -168,7 +170,87 @@ export type RoutePreview = {
   profile_id: string;
   selected_provider: string;
   selected_deployment: string;
+  selected_is_local: boolean;
+  cloud_allowed: boolean;
+  private_mode: boolean;
   fallback_chain: string[];
+};
+
+export type ShellHttpHealthCheck = {
+  ok: boolean;
+  status_code?: number | null;
+  error?: string | null;
+  payload?: Record<string, unknown> | null;
+};
+
+export type ShellProcessCheck = {
+  running: boolean;
+  source?: string | null;
+  pid?: number | null;
+  command?: string | null;
+  matches: string[];
+  pid_file?: string | null;
+  process_pattern?: string | null;
+};
+
+export type ShellDaemonStatus = {
+  status: string;
+  shell: string;
+  public_base_url: string;
+  healthUrl: string;
+  healthcheck: ShellHttpHealthCheck;
+  process: ShellProcessCheck;
+  note: string;
+};
+
+export type ShellAppHealth = {
+  status: string;
+  shell: string;
+  daemon: ShellDaemonStatus;
+};
+
+export type ShellBootstrapStatus = {
+  ready: boolean;
+  runtimeRoot: string;
+  runtimeBundlePath?: string | null;
+  runtimeExtracted: boolean;
+  desktopShortcutPath?: string | null;
+  desktopShortcutCreated: boolean;
+  daemonStarted: boolean;
+  daemonStatus: string;
+  launchAgentInstalled: boolean;
+  launchAgentLoaded: boolean;
+  keychainBrokerReady: boolean;
+  logsDir: string;
+  note: string;
+  error?: string | null;
+};
+
+export type ShellLaunchAgentStatus = {
+  label: string;
+  plistPath: string;
+  installed: boolean;
+  loaded: boolean;
+  configured: boolean;
+  pid?: number | null;
+  lastExitStatus?: number | null;
+  stdoutPath: string;
+  stderrPath: string;
+  program?: string | null;
+  args: string[];
+  workingDirectory?: string | null;
+  note: string;
+};
+
+export type ShellTrayStatus = {
+  enabled: boolean;
+  baseUrl: string;
+  daemonStatus: string;
+  launchAgentLoaded: boolean;
+  desktopShortcutPath?: string | null;
+  desktopShortcutReady: boolean;
+  menuItems: string[];
+  note: string;
 };
 
 export type ModelRecord = {

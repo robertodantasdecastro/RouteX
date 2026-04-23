@@ -22,6 +22,23 @@ OPENAI_COMPATIBLE_PROVIDER_KINDS = {
 }
 
 
+def _extract_error_message(body: Any, fallback: str) -> str:
+    if isinstance(body, dict):
+        error = body.get("error")
+        if isinstance(error, dict):
+            message = error.get("message")
+            if isinstance(message, str) and message.strip():
+                return message
+        if isinstance(error, str) and error.strip():
+            return error
+        message = body.get("message")
+        if isinstance(message, str) and message.strip():
+            return message
+    elif isinstance(body, str) and body.strip():
+        return body
+    return fallback
+
+
 class OpenAICompatibleAdapter(ProviderAdapter):
     def __init__(self) -> None:
         self._client = httpx.AsyncClient(timeout=120.0)
@@ -66,7 +83,7 @@ class OpenAICompatibleAdapter(ProviderAdapter):
                 body = response.json()
             except Exception:
                 body = {"error": {"message": response.text}}
-            message = body.get("error", {}).get("message", response.text)
+            message = _extract_error_message(body, response.text)
             raise AdapterExecutionError(
                 message=message,
                 status_code=response.status_code,
