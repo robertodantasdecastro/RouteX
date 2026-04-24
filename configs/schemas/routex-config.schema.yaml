@@ -111,3 +111,17 @@ properties:
             type: boolean
           tracingEnabled:
             type: boolean
+      appearance:
+        type: object
+        additionalProperties: false
+        properties:
+          theme:
+            type: string
+            enum:
+              - dark
+              - light
+          interfaceMode:
+            type: string
+            enum:
+              - cyberdeck
+              - classic

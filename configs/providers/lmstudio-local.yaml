@@ -20,7 +20,7 @@ spec:
   models:
     - id: qwen-coder-local
       alias: qwen2.5-coder:latest
-      upstreamModel: qwen2.5-coder-3b-instruct-distill-qwen3-coder-next-abliterated
+      upstreamModel: qwen2.5-coder-7b-instruct-abliterated
       purpose: chat
       tier: local
       selectorTags:

@@ -1,10 +1,50 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AppWindow, ClipboardCopy, Code2, PlugZap, Settings2 } from "lucide-react";
 import { adminApi, adminBase, getRuntimeV1BaseUrl } from "@/lib/api";
-import { Panel } from "@/components/Panel";
 import { SourceBadge } from "@/components/SourceBadge";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { shellApi, shellAvailable } from "@/lib/shell";
 import type { Settings } from "@/lib/types";
+
+const compatibleApps = [
+  {
+    id: "cursor",
+    name: "Cursor",
+    setup: "OpenAI-compatible/BYOK: Base URL, API key local e model alias.",
+    url: "https://docs.cursor.com/advanced/api-keys",
+  },
+  {
+    id: "continue",
+    name: "Continue",
+    setup: "provider openai + apiBase apontando para RouteX.",
+    url: "https://docs.continue.dev/customize/model-providers/top-level/openai",
+  },
+  {
+    id: "cline-cli",
+    name: "Cline",
+    setup: "API Provider OpenAI Compatible, Base URL, API key e Model ID.",
+    url: "https://docs.cline.bot/provider-config/openai-compatible",
+  },
+  {
+    id: "zed",
+    name: "Zed",
+    setup: "language_models.openai_compatible com api_url e available_models.",
+    url: "https://zed.dev/docs/ai/llm-providers",
+  },
+  {
+    id: "jetbrains",
+    name: "JetBrains AI",
+    setup: "Providers & API keys: OpenAI-compatible endpoint ou LM Studio/Ollama.",
+    url: "https://www.jetbrains.com/help/ai-assistant/use-custom-models.html",
+  },
+  {
+    id: "aider",
+    name: "Aider",
+    setup: "OPENAI_API_BASE, OPENAI_API_KEY e --model openai/<alias>.",
+    url: "https://aider.chat/docs/llms/openai-compat.html",
+  },
+];
 
 function renderValue(value: boolean | number | string | null | undefined) {
   if (value === null || value === undefined) {
@@ -18,8 +58,14 @@ function renderValue(value: boolean | number | string | null | undefined) {
 
 export function SettingsPage() {
   const queryClient = useQueryClient();
-  const { health, settings, profiles, models, providers } = useDashboardData();
+  const { health, settings, profiles, models } = useDashboardData();
   const [draft, setDraft] = useState<Settings | null>(null);
+  const isShellAvailable = shellAvailable();
+  const installedApps = useQuery({
+    queryKey: ["installed-apps-status"],
+    queryFn: shellApi.installedAppsStatus,
+    enabled: isShellAvailable,
+  });
 
   useEffect(() => {
     if (settings.data?.effective) {
@@ -47,83 +93,33 @@ export function SettingsPage() {
       ]);
     },
   });
-  const routePreview = useQuery({
-    queryKey: ["settings-route-preview", effectiveSettings.cursor_model_alias, effectiveSettings.default_profile],
-    queryFn: () =>
-      adminApi.previewRoute({
-        model_alias: effectiveSettings.cursor_model_alias,
-        profile_id: effectiveSettings.default_profile,
-      }),
-    enabled: Boolean(effectiveSettings.cursor_model_alias && effectiveSettings.default_profile),
-  });
-  const providerMap = new Map(
-    (providers.data?.effective ?? []).map((provider) => [provider.provider_id, provider]),
-  );
-  const selectedProvider = routePreview.data
-    ? providerMap.get(routePreview.data.selected_provider)
-    : undefined;
-
   const rows = [
-    {
-      label: "Host",
-      versioned: settings.data.versioned.host,
-      override: settings.data.override?.host,
-      effective: settings.data.effective.host,
-    },
-    {
-      label: "Port",
-      versioned: settings.data.versioned.port,
-      override: settings.data.override?.port,
-      effective: settings.data.effective.port,
-    },
-    {
-      label: "Theme",
-      versioned: settings.data.versioned.theme,
-      override: settings.data.override?.theme,
-      effective: settings.data.effective.theme,
-    },
-    {
-      label: "Startup enabled",
-      versioned: settings.data.versioned.startup_enabled,
-      override: settings.data.override?.startup_enabled,
-      effective: settings.data.effective.startup_enabled,
-    },
-    {
-      label: "Debug TTL",
-      versioned: `${settings.data.versioned.debug_logging_ttl_minutes} min`,
-      override: settings.data.override
-        ? `${settings.data.override.debug_logging_ttl_minutes} min`
-        : undefined,
-      effective: `${settings.data.effective.debug_logging_ttl_minutes} min`,
-    },
-    {
-      label: "Log level",
-      versioned: settings.data.versioned.log_level,
-      override: settings.data.override?.log_level,
-      effective: settings.data.effective.log_level,
-    },
-    {
-      label: "Default profile",
-      versioned: settings.data.versioned.default_profile,
-      override: settings.data.override?.default_profile,
-      effective: settings.data.effective.default_profile,
-    },
-    {
-      label: "Cursor model alias",
-      versioned: settings.data.versioned.cursor_model_alias,
-      override: settings.data.override?.cursor_model_alias,
-      effective: settings.data.effective.cursor_model_alias,
-    },
+    ["Host", settings.data.versioned.host, settings.data.override?.host, settings.data.effective.host],
+    ["Port", settings.data.versioned.port, settings.data.override?.port, settings.data.effective.port],
+    ["Interface", settings.data.versioned.interface_mode, settings.data.override?.interface_mode, settings.data.effective.interface_mode],
+    ["Default profile", settings.data.versioned.default_profile, settings.data.override?.default_profile, settings.data.effective.default_profile],
+    ["Cursor alias", settings.data.versioned.cursor_model_alias, settings.data.override?.cursor_model_alias, settings.data.effective.cursor_model_alias],
+    ["Startup", settings.data.versioned.startup_enabled, settings.data.override?.startup_enabled, settings.data.effective.startup_enabled],
+    ["Log level", settings.data.versioned.log_level, settings.data.override?.log_level, settings.data.effective.log_level],
   ];
+  const installedById = new Map((installedApps.data ?? []).map((app) => [app.appId, app]));
 
   return (
-    <section className="content-grid">
-      <Panel
-        title="Gestao operacional"
-        subtitle="Ajuste o perfil padrao e o alias sugerido para o Cursor sem editar manifests manualmente."
-      >
+    <section className="operator-grid">
+      <section className="panel operator-focus">
+        <header className="operator-header">
+          <div>
+            <p>Settings</p>
+            <h2>Controles que alteram o uso diario</h2>
+            <span>
+              Configuracoes abaixo sao os defaults operacionais. Manifests continuam versionados;
+              overrides locais ficam no runtime.
+            </span>
+          </div>
+          <Settings2 size={26} />
+        </header>
         <form
-          className="management-form"
+          className="settings-control-grid"
           onSubmit={(event) => {
             event.preventDefault();
             if (draft) {
@@ -132,14 +128,28 @@ export function SettingsPage() {
           }}
         >
           <label>
-            Default profile
+            Interface
+            <select
+              value={effectiveSettings.interface_mode}
+              onChange={(event) =>
+                setDraft((current) =>
+                  current
+                    ? { ...current, interface_mode: event.target.value as Settings["interface_mode"] }
+                    : current,
+                )
+              }
+            >
+              <option value="cyberdeck">Mac Cyberdeck</option>
+              <option value="classic">Classic fallback</option>
+            </select>
+          </label>
+          <label>
+            Perfil padrao
             <select
               value={effectiveSettings.default_profile}
               onChange={(event) =>
                 setDraft((current) =>
-                  current
-                    ? { ...current, default_profile: event.target.value }
-                    : current,
+                  current ? { ...current, default_profile: event.target.value } : current,
                 )
               }
             >
@@ -151,14 +161,12 @@ export function SettingsPage() {
             </select>
           </label>
           <label>
-            Cursor model alias
+            Alias para clientes
             <select
               value={effectiveSettings.cursor_model_alias}
               onChange={(event) =>
                 setDraft((current) =>
-                  current
-                    ? { ...current, cursor_model_alias: event.target.value }
-                    : current,
+                  current ? { ...current, cursor_model_alias: event.target.value } : current,
                 )
               }
             >
@@ -170,7 +178,7 @@ export function SettingsPage() {
             </select>
           </label>
           <label>
-            Startup enabled
+            Startup
             <select
               value={effectiveSettings.startup_enabled ? "true" : "false"}
               onChange={(event) =>
@@ -181,8 +189,8 @@ export function SettingsPage() {
                 )
               }
             >
-              <option value="true">yes</option>
-              <option value="false">no</option>
+              <option value="true">ligado</option>
+              <option value="false">desligado</option>
             </select>
           </label>
           <label>
@@ -202,111 +210,126 @@ export function SettingsPage() {
               ))}
             </select>
           </label>
-          <div className="button-row">
-            <button type="submit" disabled={saveSettings.isPending || !draft}>
-              {saveSettings.isPending ? "Salvando..." : "Salvar configuracoes"}
-            </button>
-          </div>
-          {saveSettings.error ? (
-            <div className="inline-feedback error">{saveSettings.error.message}</div>
-          ) : null}
-          {saveSettings.isSuccess ? (
-            <div className="inline-feedback success">
-              Configuracoes locais atualizadas. O roteador ja passou a usar o novo perfil padrao.
-            </div>
-          ) : null}
+          <button disabled={saveSettings.isPending || !draft} type="submit">
+            {saveSettings.isPending ? "Salvando..." : "Salvar"}
+          </button>
         </form>
-      </Panel>
+        {saveSettings.error ? (
+          <div className="inline-feedback error">{saveSettings.error.message}</div>
+        ) : null}
+        {saveSettings.isSuccess ? (
+          <div className="inline-feedback success">Configuracoes aplicadas.</div>
+        ) : null}
+      </section>
 
-      <Panel title="Settings efetivas" subtitle="Comparativo entre manifesto, override local e runtime.">
-        <div className="settings-compare">
-          <div className="settings-cell settings-header">Campo</div>
-          <div className="settings-cell settings-header">
-            <SourceBadge source="versioned" />
+      <section className="settings-panels">
+        <section className="panel">
+          <header className="panel-header compact">
+            <div>
+              <h2>Como usar</h2>
+              <p>Copie estes dados para qualquer cliente OpenAI-compatible.</p>
+            </div>
+            <button
+              className="icon-action"
+              onClick={() => void navigator.clipboard.writeText(runtimeV1BaseUrl)}
+              type="button"
+            >
+              <ClipboardCopy size={15} />
+              Copiar URL
+            </button>
+          </header>
+          <div className="panel-body">
+            <div className="setup-values">
+              <div><span>Base URL</span><code>{runtimeV1BaseUrl}</code></div>
+              <div><span>Model ID</span><code>{effectiveSettings.cursor_model_alias}</code></div>
+              <div><span>API Key</span><code>token local gerado no Cursor Setup</code></div>
+              <div><span>Profile</span><strong>{effectiveSettings.default_profile}</strong></div>
+            </div>
           </div>
-          <div className="settings-cell settings-header">
-            <SourceBadge source="override" />
-          </div>
-          <div className="settings-cell settings-header">
-            <SourceBadge source="effective" />
-          </div>
-          {rows.map((row) => [
-            <div className="settings-cell settings-label" key={`${row.label}-label`}>
-              <strong>{row.label}</strong>
-            </div>,
-            <div className="settings-cell" key={`${row.label}-versioned`}>
-              <span>{renderValue(row.versioned)}</span>
-            </div>,
-            <div className="settings-cell" key={`${row.label}-override`}>
-              <span>{renderValue(row.override)}</span>
-            </div>,
-            <div className="settings-cell" key={`${row.label}-effective`}>
-              <span>{renderValue(row.effective)}</span>
-            </div>,
-          ])}
-        </div>
-      </Panel>
+        </section>
 
-      <Panel title="Endpoints do runtime" subtitle="URLs reais para operador e integracoes locais.">
-        <div className="stack-list">
-          <div className="stack-row">
-            <span>OpenAI-compatible</span>
-            <code>{runtimeV1BaseUrl}</code>
+        <section className="panel">
+          <header className="panel-header compact">
+            <div>
+              <h2>Apps compativeis</h2>
+              <p>Verificacao local funciona dentro da app desktop; no browser aparece como manual.</p>
+            </div>
+            <AppWindow size={20} />
+          </header>
+          <div className="panel-body app-grid">
+            {compatibleApps.map((app) => {
+              const status = installedById.get(app.id);
+              return (
+                <article key={app.id} className="app-card">
+                  <header>
+                    <strong>{app.name}</strong>
+                    <span className={status?.installed ? "ok" : "warn"}>
+                      {isShellAvailable
+                        ? status?.installed
+                          ? "instalado"
+                          : "nao detectado"
+                        : "verificar na app"}
+                    </span>
+                  </header>
+                  <p>{app.setup}</p>
+                  {status?.launchPath ? <code>{status.launchPath}</code> : null}
+                  <a href={app.url} rel="noreferrer" target="_blank">Docs</a>
+                </article>
+              );
+            })}
           </div>
-          <div className="stack-row">
-            <span>Admin API</span>
-            <code>{adminBase}</code>
-          </div>
-          <div className="stack-row">
-            <span>Override ativo</span>
-            <strong>{settings.data.override ? "sim" : "nao"}</strong>
-          </div>
-        </div>
-      </Panel>
+        </section>
 
-      <Panel
-        title="Certificacao do Cursor"
-        subtitle="Verificacao rapida da rota selecionada para o alias sugerido ao Cursor."
-      >
-        {routePreview.isLoading ? (
-          <div className="empty-state">Simulando a rota efetiva do Cursor...</div>
-        ) : routePreview.error || !routePreview.data ? (
-          <div className="empty-state error">
-            Nao foi possivel calcular a rota efetiva do Cursor.
+        <section className="panel">
+          <header className="panel-header compact">
+            <div>
+              <h2>MCP</h2>
+              <p>Controle de compatibilidade e setup para clientes que usam ferramentas MCP.</p>
+            </div>
+            <PlugZap size={20} />
+          </header>
+          <div className="panel-body mcp-panel">
+            <div>
+              <strong>Estado alpha</strong>
+              <span>
+                RouteX entrega o endpoint LLM OpenAI-compatible. MCP entra aqui como guia e
+                readiness para clientes; um MCP server nativo do RouteX ainda deve ser tratado como
+                proxima evolucao antes de expor ferramentas.
+              </span>
+            </div>
+            <pre>{`{
+  "routex": {
+    "baseUrl": "${runtimeV1BaseUrl}",
+    "model": "${effectiveSettings.cursor_model_alias}",
+    "privacy": "${effectiveSettings.default_profile}"
+  }
+}`}</pre>
           </div>
-        ) : (
-          <div className="stack-list">
-            <div className="stack-row">
-              <span>Profile</span>
-              <strong>{routePreview.data.profile_id}</strong>
-            </div>
-            <div className="stack-row">
-              <span>Alias</span>
-              <code>{effectiveSettings.cursor_model_alias}</code>
-            </div>
-            <div className="stack-row">
-              <span>Provider</span>
-              <strong>{selectedProvider?.display_name ?? routePreview.data.selected_provider}</strong>
-            </div>
-            <div className="stack-row">
-              <span>Somente local</span>
-              <strong>
-                {routePreview.data.private_mode && routePreview.data.selected_is_local
-                  ? "sim"
-                  : "nao"}
-              </strong>
-            </div>
-            <div className="stack-row">
-              <span>Cloud permitido</span>
-              <strong>{routePreview.data.cloud_allowed ? "sim" : "nao"}</strong>
-            </div>
-            <div className="stack-row">
-              <span>Fallback</span>
-              <code>{routePreview.data.fallback_chain.join(" -> ") || "sem fallback"}</code>
-            </div>
+        </section>
+
+        <details className="panel settings-details">
+          <summary>
+            <Code2 size={17} />
+            Ver detalhes tecnicos de origem das settings
+          </summary>
+          <div className="settings-compare compact-compare">
+            <div className="settings-cell settings-header">Campo</div>
+            <div className="settings-cell settings-header"><SourceBadge source="versioned" /></div>
+            <div className="settings-cell settings-header"><SourceBadge source="override" /></div>
+            <div className="settings-cell settings-header"><SourceBadge source="effective" /></div>
+            {rows.map(([label, versioned, override, effective]) => [
+              <div className="settings-cell settings-label" key={`${label}-label`}><strong>{label}</strong></div>,
+              <div className="settings-cell" key={`${label}-versioned`}><span>{renderValue(versioned)}</span></div>,
+              <div className="settings-cell" key={`${label}-override`}><span>{renderValue(override)}</span></div>,
+              <div className="settings-cell" key={`${label}-effective`}><span>{renderValue(effective)}</span></div>,
+            ])}
           </div>
-        )}
-      </Panel>
+          <div className="setup-values">
+            <div><span>Admin API</span><code>{adminBase}</code></div>
+            <div><span>Override ativo</span><strong>{settings.data.override ? "sim" : "nao"}</strong></div>
+          </div>
+        </details>
+      </section>
     </section>
   );
 }

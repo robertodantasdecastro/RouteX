@@ -16,6 +16,7 @@ fn main() {
             ipc::app_health,
             ipc::daemon_status,
             ipc::copy_public_base_url,
+            ipc::installed_apps_status,
             keychain::keychain_status,
             keychain::keychain_lookup,
             keychain::keychain_store,

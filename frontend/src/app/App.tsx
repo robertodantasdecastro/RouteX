@@ -1,17 +1,30 @@
 import { getRuntimeV1BaseUrl } from "@/lib/api";
-import { ShellLayout } from "@/components/ShellLayout";
+import { ClassicShellLayout } from "@/components/ClassicShellLayout";
+import { CyberdeckShellLayout } from "@/components/CyberdeckShellLayout";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { renderRoute } from "@/app/router";
 import { useAppStore } from "@/store/useAppStore";
 
 const subtitles = {
-  overview: "Daemon local, health, rota ativa e auditoria recente.",
+  overview: "Status local, rota ativa, privacidade e Cursor em uma tela.",
+  prompts: "Biblioteca de prompts, smoke prompts e teste rapido via RouteX.",
   providers: "Cadastre, inspecione e teste seus upstreams.",
   models: "Aliases publicos desacoplados dos deployments reais.",
   routes: "Perfis e regras que guiam o roteamento e fallback.",
-  requests: "Historico resumido, latencia e cadeias de fallback.",
-  settings: "Defaults operacionais do runtime local.",
+  requests: "Activity log, latencia, erros e cadeias de fallback.",
+  settings: "Interface, apps compativeis, MCP, startup e runtime.",
   onboarding: "Conecte o Cursor ao endpoint unico do RouteX.",
+} as const;
+
+const titles = {
+  overview: "Cockpit",
+  prompts: "Prompts",
+  providers: "Providers",
+  models: "Models",
+  routes: "Routes",
+  requests: "Activity",
+  settings: "Settings",
+  onboarding: "Cursor Setup",
 } as const;
 
 export function App() {
@@ -21,10 +34,12 @@ export function App() {
     health: health.data,
     settings: settings.data?.effective,
   });
+  const interfaceMode = settings.data?.effective.interface_mode ?? "cyberdeck";
+  const Shell = interfaceMode === "classic" ? ClassicShellLayout : CyberdeckShellLayout;
 
   return (
-    <ShellLayout
-      title="RouteX Control Plane"
+    <Shell
+      title={titles[currentSection]}
       subtitle={subtitles[currentSection]}
       actions={
         <>
@@ -40,6 +55,6 @@ export function App() {
       }
     >
       {renderRoute(currentSection)}
-    </ShellLayout>
+    </Shell>
   );
 }

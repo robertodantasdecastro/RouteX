@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RouteX Cyberdeck Mockup - Route Lab</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090c0f;
+        --surface: #11171c;
+        --surface-2: #151d23;
+        --line: #26333c;
+        --text: #e7edf0;
+        --muted: #82909a;
+        --cyan: #25d7df;
+        --green: #43e59a;
+        --amber: #f2b84b;
+        --violet: #8c6cff;
+        --red: #ff636f;
+        font-family: "SF Pro Display", "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(37, 215, 223, 0.12), transparent 28%),
+          radial-gradient(circle at 85% 100%, rgba(140, 108, 255, 0.12), transparent 30%),
+          #07090c;
+        color: var(--text);
+      }
+
+      .window {
+        width: 1380px;
+        height: 860px;
+        margin: 28px auto;
+        overflow: hidden;
+        border: 1px solid #2a343c;
+        border-radius: 14px;
+        background: var(--bg);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+      }
+
+      .chrome {
+        height: 42px;
+        display: grid;
+        grid-template-columns: 110px 1fr 260px;
+        align-items: center;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--line);
+        background: #17191c;
+      }
+
+      .lights { display: flex; gap: 8px; }
+      .light { width: 12px; height: 12px; border-radius: 50%; }
+      .red-light { background: #ff5f57; }
+      .yellow { background: #ffbd2e; }
+      .green-light { background: #28c840; }
+      .title { text-align: center; color: var(--muted); font-size: 13px; }
+
+      .shell {
+        height: calc(100% - 42px);
+        display: grid;
+        grid-template-columns: 92px 1fr;
+      }
+
+      .rail {
+        border-right: 1px solid var(--line);
+        background: #0c1014;
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .brand {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 18px;
+        border: 1px solid rgba(37, 215, 223, 0.45);
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        color: var(--cyan);
+        font-weight: 800;
+        font-size: 22px;
+      }
+
+      .nav {
+        height: 58px;
+        display: grid;
+        place-items: center;
+        border: 1px solid transparent;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .nav.active {
+        color: var(--cyan);
+        border-color: rgba(37, 215, 223, 0.4);
+        background: rgba(37, 215, 223, 0.08);
+      }
+
+      .main {
+        padding: 18px;
+        display: grid;
+        grid-template-rows: 58px 1fr;
+        gap: 16px;
+      }
+
+      .command-strip {
+        border: 1px solid var(--line);
+        background: var(--surface);
+        display: grid;
+        grid-template-columns: 1fr 170px 170px 170px;
+        align-items: center;
+      }
+
+      .command-title {
+        padding: 0 16px;
+      }
+
+      .command-title strong { display: block; font-size: 15px; }
+      .command-title span { color: var(--muted); font-size: 12px; }
+      .command-button {
+        height: 100%;
+        border: 0;
+        border-left: 1px solid var(--line);
+        background: transparent;
+        color: var(--text);
+        text-align: left;
+        padding: 0 14px;
+      }
+      .command-button.primary { color: var(--cyan); }
+      .command-button.warn { color: var(--amber); }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 360px 1fr 300px;
+        gap: 16px;
+        min-height: 0;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        background: rgba(17, 22, 27, 0.96);
+        overflow: hidden;
+      }
+
+      .panel h2 {
+        margin: 0;
+        padding: 12px 14px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .profile-stack,
+      .details,
+      .fallback {
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .profile-card {
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        padding: 14px;
+      }
+
+      .profile-card.active {
+        border-color: var(--cyan);
+        box-shadow: inset 3px 0 0 var(--cyan);
+      }
+
+      .profile-card.private {
+        border-color: var(--green);
+        box-shadow: inset 3px 0 0 var(--green);
+      }
+
+      .profile-card h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+
+      .profile-card p,
+      .muted {
+        margin: 0;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .lab-map {
+        padding: 18px;
+        height: calc(100% - 44px);
+        display: grid;
+        grid-template-rows: 82px 1fr 100px;
+        gap: 16px;
+      }
+
+      .request-bar {
+        border: 1px solid var(--line);
+        display: grid;
+        grid-template-columns: 1fr 1fr 160px;
+      }
+
+      .request-cell {
+        padding: 12px 14px;
+        border-right: 1px solid var(--line);
+      }
+
+      .request-cell:last-child { border-right: 0; }
+      .label { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+      .value { margin-top: 6px; font-size: 14px; font-weight: 700; }
+      .cyan { color: var(--cyan); }
+      .green { color: var(--green); }
+      .amber { color: var(--amber); }
+      .red { color: var(--red); }
+
+      .decision-grid {
+        display: grid;
+        grid-template-columns: 1fr 44px 1fr 44px 1fr;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .node {
+        min-height: 150px;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        padding: 16px;
+        display: grid;
+        align-content: start;
+        gap: 10px;
+      }
+
+      .node.active { border-color: var(--cyan); }
+      .node.allow { border-color: var(--green); }
+      .node.block { border-color: rgba(255, 99, 111, 0.58); }
+      .arrow { height: 2px; background: linear-gradient(90deg, var(--cyan), var(--green)); }
+      .arrow.blocked { background: repeating-linear-gradient(90deg, var(--red), var(--red) 8px, transparent 8px, transparent 14px); }
+
+      .rules {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+
+      .rule {
+        border: 1px solid var(--line);
+        padding: 12px;
+        background: #0f1419;
+      }
+
+      .fallback-step {
+        display: grid;
+        grid-template-columns: 30px 1fr;
+        gap: 10px;
+        align-items: start;
+      }
+
+      .step-dot {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--line);
+        color: var(--cyan);
+      }
+
+      .status-table {
+        display: grid;
+        gap: 1px;
+        background: var(--line);
+      }
+
+      .status-row {
+        display: grid;
+        grid-template-columns: 1fr 86px;
+        background: var(--surface);
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="window">
+      <div class="chrome">
+        <div class="lights"><span class="light red-light"></span><span class="light yellow"></span><span class="light green-light"></span></div>
+        <div class="title">RouteX Route Lab</div>
+        <div></div>
+      </div>
+      <div class="shell">
+        <aside class="rail">
+          <div class="brand">R</div>
+          <div class="nav">Cockpit</div>
+          <div class="nav active">Routes</div>
+          <div class="nav">Providers</div>
+          <div class="nav">Models</div>
+          <div class="nav">Activity</div>
+          <div class="nav">Settings</div>
+        </aside>
+        <main class="main">
+          <section class="command-strip">
+            <div class="command-title">
+              <strong>Route simulation lab</strong>
+              <span>Preview deterministic routing before Cursor sends the request</span>
+            </div>
+            <button class="command-button primary">Run preview</button>
+            <button class="command-button">Copy policy</button>
+            <button class="command-button warn">Reset overrides</button>
+          </section>
+          <section class="workspace">
+            <section class="panel">
+              <h2>Profiles</h2>
+              <div class="profile-stack">
+                <div class="profile-card">
+                  <h3>Local First</h3>
+                  <p>Prefer local providers, allow cloud only when the project permits.</p>
+                </div>
+                <div class="profile-card active">
+                  <h3>Balanced</h3>
+                  <p>Use health, latency and policy to select a stable route.</p>
+                </div>
+                <div class="profile-card">
+                  <h3>Cloud Power</h3>
+                  <p>Prefer frontier cloud models when privacy rules allow it.</p>
+                </div>
+                <div class="profile-card private">
+                  <h3>Private Mode</h3>
+                  <p>Block remote providers. Local-only with explicit fallback rules.</p>
+                </div>
+              </div>
+            </section>
+            <section class="panel">
+              <h2>Effective route preview</h2>
+              <div class="lab-map">
+                <div class="request-bar">
+                  <div class="request-cell">
+                    <div class="label">Project</div>
+                    <div class="value">routex-alpha</div>
+                  </div>
+                  <div class="request-cell">
+                    <div class="label">Model alias</div>
+                    <div class="value">qwen2.5-coder-3b-pentest</div>
+                  </div>
+                  <div class="request-cell">
+                    <div class="label">Endpoint</div>
+                    <div class="value cyan">chat</div>
+                  </div>
+                </div>
+                <div class="decision-grid">
+                  <div class="node active">
+                    <div class="label">Policy</div>
+                    <strong>Balanced + local override</strong>
+                    <p class="muted">Project override points Cursor traffic to LM Studio first.</p>
+                  </div>
+                  <div class="arrow"></div>
+                  <div class="node allow">
+                    <div class="label">Provider</div>
+                    <strong>lmstudio-local</strong>
+                    <p class="muted">Healthy, local network, OpenAI-compatible API.</p>
+                  </div>
+                  <div class="arrow blocked"></div>
+                  <div class="node block">
+                    <div class="label">Cloud</div>
+                    <strong>blocked unless explicit</strong>
+                    <p class="muted">OpenAI and Anthropic are excluded by effective policy.</p>
+                  </div>
+                </div>
+                <div class="rules">
+                  <div class="rule">
+                    <div class="label">Rule 1</div>
+                    <div class="value green">project override</div>
+                    <p class="muted">.routex/project.yaml</p>
+                  </div>
+                  <div class="rule">
+                    <div class="label">Rule 2</div>
+                    <div class="value cyan">provider health</div>
+                    <p class="muted">EWMA latency under budget</p>
+                  </div>
+                  <div class="rule">
+                    <div class="label">Rule 3</div>
+                    <div class="value amber">fallback guard</div>
+                    <p class="muted">No fallback after 401/403</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <aside class="panel">
+              <h2>Fallback chain</h2>
+              <div class="fallback">
+                <div class="fallback-step">
+                  <div class="step-dot">1</div>
+                  <div>
+                    <strong>lmstudio-local</strong>
+                    <p class="muted">Primary route for current alias.</p>
+                  </div>
+                </div>
+                <div class="fallback-step">
+                  <div class="step-dot">2</div>
+                  <div>
+                    <strong>mock-dev</strong>
+                    <p class="muted">Offline smoke fallback for alpha.</p>
+                  </div>
+                </div>
+                <div class="fallback-step">
+                  <div class="step-dot">3</div>
+                  <div>
+                    <strong>cloud providers</strong>
+                    <p class="muted red">Blocked by privacy gate.</p>
+                  </div>
+                </div>
+                <div class="status-table">
+                  <div class="status-row"><span>Latency budget</span><strong class="green">ok</strong></div>
+                  <div class="status-row"><span>Private mode</span><strong class="amber">guarded</strong></div>
+                  <div class="status-row"><span>Auth errors</span><strong class="red">no retry</strong></div>
+                  <div class="status-row"><span>Timeout retry</span><strong class="cyan">enabled</strong></div>
+                </div>
+              </div>
+            </aside>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

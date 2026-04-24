@@ -30,3 +30,6 @@ spec:
     redactSensitiveData: true
     metricsEnabled: true
     tracingEnabled: false
+  appearance:
+    theme: dark
+    interfaceMode: cyberdeck

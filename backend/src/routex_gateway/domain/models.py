@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -170,6 +170,7 @@ class SettingsDefinition(BaseModel):
     host: str = "127.0.0.1"
     port: int = 48200
     theme: str = "dark"
+    interface_mode: Literal["cyberdeck", "classic"] = "cyberdeck"
     startup_enabled: bool = True
     debug_logging_ttl_minutes: int = 30
     log_level: str = "INFO"

@@ -1,3 +1,6 @@
+use std::env;
+use std::process::Command;
+
 use serde::Serialize;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
@@ -14,6 +17,7 @@ const MENU_SHORTCUT: &str = "tray.shortcut";
 const MENU_BASE_URL_STATUS: &str = "tray.base_url_status";
 const MENU_OPEN: &str = "tray.open";
 const MENU_COPY_BASE_URL: &str = "tray.copy_base_url";
+const MENU_RESTART_DAEMON: &str = "tray.restart_daemon";
 const MENU_QUIT: &str = "tray.quit";
 
 #[derive(Debug, Serialize)]
@@ -34,12 +38,11 @@ pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
     let bootstrap = app.state::<BootstrapState>().inner().snapshot();
     let daemon = ipc::daemon_status_from_config(&config, None);
     let menu = Menu::new(app)?;
-    let title_item =
-        MenuItem::with_id(app, MENU_TITLE, "RouteX Dashboard", false, None::<&str>)?;
+    let title_item = MenuItem::with_id(app, MENU_TITLE, "RouteX Cockpit", false, None::<&str>)?;
     let daemon_status_item = MenuItem::with_id(
         app,
         MENU_DAEMON_STATUS,
-        format!("Daemon: {}", daemon.status),
+        format!("Daemon: {}", daemon.status.to_uppercase()),
         false,
         None::<&str>,
     )?;
@@ -79,9 +82,16 @@ pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
         false,
         None::<&str>,
     )?;
-    let open_item = MenuItem::with_id(app, MENU_OPEN, "Open RouteX", true, None::<&str>)?;
+    let open_item = MenuItem::with_id(app, MENU_OPEN, "Open Cockpit", true, None::<&str>)?;
     let copy_item =
         MenuItem::with_id(app, MENU_COPY_BASE_URL, "Copy Base URL", true, None::<&str>)?;
+    let restart_item = MenuItem::with_id(
+        app,
+        MENU_RESTART_DAEMON,
+        "Restart Daemon",
+        true,
+        None::<&str>,
+    )?;
     let separator = PredefinedMenuItem::separator(app)?;
     let quit_item = MenuItem::with_id(app, MENU_QUIT, "Quit", true, None::<&str>)?;
 
@@ -92,6 +102,7 @@ pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
     menu.append(&base_url_item)?;
     menu.append(&open_item)?;
     menu.append(&copy_item)?;
+    menu.append(&restart_item)?;
     menu.append(&separator)?;
     menu.append(&quit_item)?;
 
@@ -107,6 +118,10 @@ pub fn setup<R: tauri::Runtime>(app: &mut tauri::App<R>) -> tauri::Result<()> {
             MENU_COPY_BASE_URL => {
                 let config = app.state::<AlphaConfig>().inner().clone();
                 let _ = ipc::copy_text_to_clipboard(&config.public_base_url);
+            }
+            MENU_RESTART_DAEMON => {
+                let config = app.state::<AlphaConfig>().inner().clone();
+                let _ = restart_daemon_via_launch_agent(&config);
             }
             MENU_QUIT => {
                 app.exit(0);
@@ -144,9 +159,42 @@ pub fn tray_status(
             MENU_BASE_URL_STATUS,
             MENU_OPEN,
             MENU_COPY_BASE_URL,
+            MENU_RESTART_DAEMON,
             MENU_QUIT,
         ],
-        note: "Tray alpha com dashboard operacional, abrir app, copiar Base URL e sair."
+        note: "Tray alpha com status operacional, abrir app, copiar Base URL, reiniciar daemon e sair."
             .to_string(),
+    }
+}
+
+fn restart_daemon_via_launch_agent(config: &AlphaConfig) -> Result<(), String> {
+    let uid = env::var("UID")
+        .ok()
+        .and_then(|value| value.parse::<u32>().ok())
+        .or_else(|| {
+            Command::new("/usr/bin/id")
+                .arg("-u")
+                .output()
+                .ok()
+                .and_then(|output| {
+                    if output.status.success() {
+                        String::from_utf8(output.stdout)
+                            .ok()
+                            .and_then(|value| value.trim().parse::<u32>().ok())
+                    } else {
+                        None
+                    }
+                })
+        })
+        .unwrap_or(501);
+    let target = format!("gui/{}/{}", uid, config.launch_agent_label);
+    let output = Command::new("/bin/launchctl")
+        .args(["kickstart", "-k", &target])
+        .output()
+        .map_err(|error| format!("Falha ao executar launchctl: {error}"))?;
+    if output.status.success() {
+        Ok(())
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
     }
 }

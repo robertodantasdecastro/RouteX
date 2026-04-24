@@ -1,5 +1,6 @@
 use std::fs;
 use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::Duration;
 
@@ -59,6 +60,18 @@ pub struct AppHealthPayload {
     pub daemon: DaemonStatusPayload,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstalledAppStatus {
+    pub app_id: &'static str,
+    pub display_name: &'static str,
+    pub kind: &'static str,
+    pub installed: bool,
+    pub detection: String,
+    pub launch_path: Option<String>,
+    pub setup_hint: &'static str,
+}
+
 #[tauri::command]
 pub fn app_health(
     state: State<'_, AlphaConfig>,
@@ -84,6 +97,92 @@ pub fn daemon_status(
 pub fn copy_public_base_url(state: State<'_, AlphaConfig>) -> Result<String, String> {
     copy_text_to_clipboard(&state.public_base_url)?;
     Ok(state.public_base_url.clone())
+}
+
+#[tauri::command]
+pub fn installed_apps_status() -> Vec<InstalledAppStatus> {
+    let apps = [
+        (
+            "cursor",
+            "Cursor",
+            "desktop",
+            vec![
+                PathBuf::from("/Applications/Cursor.app"),
+                home_path("Applications/Cursor.app"),
+            ],
+            "Configure como OpenAI-compatible: Base URL do RouteX, API key local e alias ativo.",
+        ),
+        (
+            "vscode",
+            "Visual Studio Code",
+            "desktop",
+            vec![
+                PathBuf::from("/Applications/Visual Studio Code.app"),
+                home_path("Applications/Visual Studio Code.app"),
+            ],
+            "Use extensoes como Continue ou Cline com provider OpenAI-compatible.",
+        ),
+        (
+            "zed",
+            "Zed",
+            "desktop",
+            vec![PathBuf::from("/Applications/Zed.app"), home_path("Applications/Zed.app")],
+            "Configure OpenAI-compatible provider em language_models.openai_compatible.",
+        ),
+        (
+            "jetbrains",
+            "JetBrains IDE",
+            "desktop",
+            vec![
+                PathBuf::from("/Applications/IntelliJ IDEA.app"),
+                PathBuf::from("/Applications/PyCharm.app"),
+                PathBuf::from("/Applications/WebStorm.app"),
+                PathBuf::from("/Applications/PhpStorm.app"),
+                PathBuf::from("/Applications/RustRover.app"),
+            ],
+            "AI Assistant aceita endpoints OpenAI-compatible e modelos locais em Providers & API keys.",
+        ),
+        (
+            "lmstudio",
+            "LM Studio",
+            "desktop",
+            vec![
+                PathBuf::from("/Applications/LM Studio.app"),
+                home_path("Applications/LM Studio.app"),
+            ],
+            "Mantenha o Local Server ativo quando usar deployments lmstudio-local.",
+        ),
+    ];
+
+    let mut result: Vec<InstalledAppStatus> = apps
+        .into_iter()
+        .map(|(app_id, display_name, kind, paths, setup_hint)| {
+            let found = paths.into_iter().find(|path| path.exists());
+            InstalledAppStatus {
+                app_id,
+                display_name,
+                kind,
+                installed: found.is_some(),
+                detection: "app_bundle".to_string(),
+                launch_path: found.map(|path| path.display().to_string()),
+                setup_hint,
+            }
+        })
+        .collect();
+
+    result.push(cli_status(
+        "aider",
+        "Aider CLI",
+        "aider",
+        "Use OPENAI_API_BASE, OPENAI_API_KEY e modelo openai/<alias>.",
+    ));
+    result.push(cli_status(
+        "cline-cli",
+        "Cline CLI",
+        "cline",
+        "Use provider openai, base URL RouteX e model id do alias ativo.",
+    ));
+    result
 }
 
 pub fn daemon_status_from_config(
@@ -176,6 +275,46 @@ pub fn copy_text_to_clipboard(text: &str) -> Result<(), String> {
     } else {
         Err(format!("pbcopy terminou com status {:?}", status.code()))
     }
+}
+
+fn home_path(relative: &str) -> PathBuf {
+    std::env::var_os("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join(relative)
+}
+
+fn cli_status(
+    app_id: &'static str,
+    display_name: &'static str,
+    command_name: &'static str,
+    setup_hint: &'static str,
+) -> InstalledAppStatus {
+    let path = which(command_name);
+    InstalledAppStatus {
+        app_id,
+        display_name,
+        kind: "cli",
+        installed: path.is_some(),
+        detection: format!("command:{command_name}"),
+        launch_path: path,
+        setup_hint,
+    }
+}
+
+fn which(command_name: &str) -> Option<String> {
+    let path_var = std::env::var_os("PATH")?;
+    for directory in std::env::split_paths(&path_var) {
+        let candidate = directory.join(command_name);
+        if is_executable(&candidate) {
+            return Some(candidate.display().to_string());
+        }
+    }
+    None
+}
+
+fn is_executable(path: &Path) -> bool {
+    path.is_file()
 }
 
 fn probe_health_endpoint(url: &str) -> HttpHealthCheck {

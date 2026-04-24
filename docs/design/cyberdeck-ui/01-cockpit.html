@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RouteX Cyberdeck Mockup - Cockpit</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0d10;
+        --surface: #11161b;
+        --surface-2: #151d23;
+        --line: #26333c;
+        --text: #e7edf0;
+        --muted: #82909a;
+        --cyan: #25d7df;
+        --green: #43e59a;
+        --amber: #f2b84b;
+        --violet: #8c6cff;
+        --red: #ff636f;
+        font-family: "SF Pro Display", "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(90deg, rgba(37, 215, 223, 0.08), transparent 36%),
+          linear-gradient(180deg, #0a0c0f, #0e1115 58%, #090b0d);
+        color: var(--text);
+      }
+
+      .window {
+        width: 1380px;
+        height: 860px;
+        margin: 28px auto;
+        overflow: hidden;
+        border: 1px solid #2a343c;
+        border-radius: 14px;
+        background: var(--bg);
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+      }
+
+      .chrome {
+        height: 42px;
+        display: grid;
+        grid-template-columns: 110px 1fr 260px;
+        align-items: center;
+        padding: 0 16px;
+        border-bottom: 1px solid var(--line);
+        background: #17191c;
+      }
+
+      .lights { display: flex; gap: 8px; }
+      .light { width: 12px; height: 12px; border-radius: 50%; }
+      .red { background: #ff5f57; }
+      .yellow { background: #ffbd2e; }
+      .green-light { background: #28c840; }
+      .title { text-align: center; color: var(--muted); font-size: 13px; }
+      .top-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+      .shell {
+        height: calc(100% - 42px);
+        display: grid;
+        grid-template-columns: 92px 1fr 318px;
+      }
+
+      .rail {
+        border-right: 1px solid var(--line);
+        background: #0c1014;
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .brand {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 18px;
+        border: 1px solid rgba(37, 215, 223, 0.45);
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        color: var(--cyan);
+        font-weight: 800;
+        font-size: 22px;
+      }
+
+      .nav {
+        height: 58px;
+        display: grid;
+        place-items: center;
+        border: 1px solid transparent;
+        color: var(--muted);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .nav.active {
+        color: var(--cyan);
+        border-color: rgba(37, 215, 223, 0.4);
+        background: rgba(37, 215, 223, 0.08);
+      }
+
+      .main {
+        padding: 18px;
+        display: grid;
+        grid-template-rows: 62px 1fr;
+        gap: 16px;
+      }
+
+      .status-strip {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .status-cell {
+        padding: 10px 14px;
+        border-right: 1px solid var(--line);
+      }
+
+      .status-cell:last-child { border-right: 0; }
+      .label { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+      .value { margin-top: 5px; font-size: 15px; font-weight: 700; }
+      .ok { color: var(--green); }
+      .warn { color: var(--amber); }
+      .cyan { color: var(--cyan); }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.35fr 0.9fr;
+        grid-template-rows: 1fr 250px;
+        gap: 16px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        background: rgba(17, 22, 27, 0.96);
+        overflow: hidden;
+      }
+
+      .panel h2 {
+        margin: 0;
+        padding: 12px 14px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .route-map {
+        padding: 18px;
+        height: calc(100% - 44px);
+        display: grid;
+        grid-template-rows: repeat(4, 1fr);
+        gap: 12px;
+      }
+
+      .route-row {
+        display: grid;
+        grid-template-columns: 140px 1fr 180px;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .node {
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        padding: 12px;
+        min-height: 58px;
+      }
+
+      .node.active { border-color: var(--cyan); box-shadow: inset 3px 0 0 var(--cyan); }
+      .node.private { border-color: var(--green); box-shadow: inset 3px 0 0 var(--green); }
+      .node.blocked { border-color: rgba(255, 99, 111, 0.5); color: var(--muted); }
+      .wire { height: 2px; background: linear-gradient(90deg, var(--cyan), var(--green)); }
+      .wire.muted { background: repeating-linear-gradient(90deg, #36434d, #36434d 8px, transparent 8px, transparent 14px); }
+
+      .side-stack {
+        display: grid;
+        gap: 16px;
+      }
+
+      .quick-actions {
+        padding: 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .btn {
+        border: 1px solid var(--line);
+        background: #111820;
+        color: var(--text);
+        padding: 12px;
+        text-align: left;
+      }
+
+      .btn.primary { border-color: var(--cyan); color: var(--cyan); }
+      .activity { padding: 12px 14px; display: grid; gap: 10px; }
+      .row { display: grid; grid-template-columns: 1fr 84px; gap: 12px; font-size: 13px; }
+      .right {
+        border-left: 1px solid var(--line);
+        background: #0d1115;
+        padding: 18px;
+      }
+      .right h3 { margin: 0 0 14px; font-size: 13px; text-transform: uppercase; color: var(--muted); }
+      .meter { height: 10px; border: 1px solid var(--line); background: #0a0d10; margin: 8px 0 18px; }
+      .fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--cyan)); width: 82%; }
+    </style>
+  </head>
+  <body>
+    <div class="window">
+      <div class="chrome">
+        <div class="lights"><span class="light red"></span><span class="light yellow"></span><span class="light green-light"></span></div>
+        <div class="title">RouteX Operational Cockpit</div>
+        <div class="top-actions"><span class="label">PRIVATE</span><span class="label cyan">127.0.0.1:48200</span></div>
+      </div>
+      <div class="shell">
+        <aside class="rail">
+          <div class="brand">RX</div>
+          <div class="nav active">Cockpit</div>
+          <div class="nav">Routes</div>
+          <div class="nav">Providers</div>
+          <div class="nav">Models</div>
+          <div class="nav">Activity</div>
+          <div class="nav">Settings</div>
+        </aside>
+        <main class="main">
+          <section class="status-strip">
+            <div class="status-cell"><div class="label">Daemon</div><div class="value ok">Healthy</div></div>
+            <div class="status-cell"><div class="label">Profile</div><div class="value">private-mode</div></div>
+            <div class="status-cell"><div class="label">Provider</div><div class="value cyan">lmstudio-local</div></div>
+            <div class="status-cell"><div class="label">Cursor Model</div><div class="value">qwen2.5-coder</div></div>
+            <div class="status-cell"><div class="label">Cloud</div><div class="value ok">Blocked</div></div>
+          </section>
+          <section class="grid">
+            <div class="panel">
+              <h2>Route Map</h2>
+              <div class="route-map">
+                <div class="route-row"><div class="node active">Cursor IDE<br /><span class="label">OpenAI client</span></div><div class="wire"></div><div class="node private">RouteX<br /><span class="label">Policy gate</span></div></div>
+                <div class="route-row"><div class="node">Alias<br /><span class="label">qwen2.5-coder</span></div><div class="wire"></div><div class="node private">LM Studio<br /><span class="label">selected</span></div></div>
+                <div class="route-row"><div class="node">Fallback</div><div class="wire muted"></div><div class="node">Mock Dev<br /><span class="label">offline smoke</span></div></div>
+                <div class="route-row"><div class="node blocked">Cloud Providers</div><div class="wire muted"></div><div class="node blocked">Blocked by private-mode</div></div>
+              </div>
+            </div>
+            <div class="side-stack">
+              <div class="panel"><h2>Quick Actions</h2><div class="quick-actions"><button class="btn primary">Copy Base URL</button><button class="btn">Run Smoke</button><button class="btn">Restart Daemon</button><button class="btn">Open Logs</button></div></div>
+              <div class="panel"><h2>Privacy Gate</h2><div class="activity"><div class="row"><span>Cloud allowed</span><strong class="ok">false</strong></div><div class="row"><span>Prompt logging</span><strong class="ok">off</strong></div><div class="row"><span>Secret redaction</span><strong class="ok">on</strong></div></div></div>
+            </div>
+            <div class="panel"><h2>Recent Activity</h2><div class="activity"><div class="row"><span>chat_completions · lmstudio-local</span><strong class="ok">success</strong></div><div class="row"><span>responses · mock-dev</span><strong class="ok">success</strong></div><div class="row"><span>Cursor UI named model</span><strong class="warn">blocked</strong></div></div></div>
+            <div class="panel"><h2>Runtime</h2><div class="activity"><div class="row"><span>LaunchAgent</span><strong class="ok">loaded</strong></div><div class="row"><span>Menu Bar</span><strong class="ok">active</strong></div><div class="row"><span>Desktop Shortcut</span><strong class="ok">ready</strong></div></div></div>
+          </section>
+        </main>
+        <aside class="right">
+          <h3>Provider Load</h3>
+          <div class="label">LM Studio</div><div class="meter"><div class="fill"></div></div>
+          <div class="label">Ollama</div><div class="meter"><div class="fill" style="width: 16%"></div></div>
+          <div class="label">Mock Dev</div><div class="meter"><div class="fill" style="width: 42%"></div></div>
+          <h3>Operator Notes</h3>
+          <p class="label">Cockpit keeps daily actions visible: model, profile, route, privacy, health and recovery.</p>
+        </aside>
+      </div>
+    </div>
+  </body>
+</html>

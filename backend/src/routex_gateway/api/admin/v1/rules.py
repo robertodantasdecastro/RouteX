@@ -29,10 +29,14 @@ async def preview_route(
     model_alias: str = Query(...),
     profile_id: str | None = Query(None),
     project_id: str | None = Query(None),
+    provider_hint: str | None = Query(None),
+    deployment_hint: str | None = Query(None),
 ):
     return await runtime.route_preview(
         session,
         model_alias=model_alias,
         profile_id=profile_id,
         project_id=project_id,
+        provider_hint=provider_hint,
+        deployment_hint=deployment_hint,
     )

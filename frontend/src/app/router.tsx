@@ -2,6 +2,7 @@ import type { RouteSection } from "@/lib/types";
 import { ModelsPage } from "@/pages/ModelsPage";
 import { OnboardingPage } from "@/pages/OnboardingPage";
 import { OverviewPage } from "@/pages/OverviewPage";
+import { PromptsPage } from "@/pages/PromptsPage";
 import { ProvidersPage } from "@/pages/ProvidersPage";
 import { RequestsPage } from "@/pages/RequestsPage";
 import { RoutesPage } from "@/pages/RoutesPage";
@@ -11,6 +12,8 @@ export function renderRoute(section: RouteSection) {
   switch (section) {
     case "providers":
       return <ProvidersPage />;
+    case "prompts":
+      return <PromptsPage />;
     case "models":
       return <ModelsPage />;
     case "routes":

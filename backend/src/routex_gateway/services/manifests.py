@@ -55,11 +55,17 @@ class RouteXObservabilitySpec(BaseModel):
     tracingEnabled: bool
 
 
+class RouteXAppearanceSpec(BaseModel):
+    theme: Literal["dark", "light"] = "dark"
+    interfaceMode: Literal["cyberdeck", "classic"] = "cyberdeck"
+
+
 class RouteXConfigSpec(BaseModel):
     environment: str
     gateway: RouteXGatewaySpec
     routing: RouteXRoutingSpec
     observability: RouteXObservabilitySpec
+    appearance: RouteXAppearanceSpec = Field(default_factory=RouteXAppearanceSpec)
 
 
 class RouteXConfigDocument(BaseModel):
@@ -358,7 +364,8 @@ class ManifestService:
         return SettingsDefinition(
             host=routex_config.spec.gateway.host,
             port=routex_config.spec.gateway.port,
-            theme="dark",
+            theme=routex_config.spec.appearance.theme,
+            interface_mode=routex_config.spec.appearance.interfaceMode,
             startup_enabled=True,
             debug_logging_ttl_minutes=30,
             log_level="INFO",

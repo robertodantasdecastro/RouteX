@@ -273,12 +273,19 @@ class RouteXRuntime:
         model_alias: str,
         profile_id: str | None = None,
         project_id: str | None = None,
+        provider_hint: str | None = None,
+        deployment_hint: str | None = None,
     ) -> dict[str, Any]:
         routed = await self.routing.resolve(
             session,
             endpoint=EndpointKind.chat_completions,
             model_alias=model_alias,
-            metadata=RouteXRequestMetadata(profile=profile_id, project_id=project_id),
+            metadata=RouteXRequestMetadata(
+                profile=profile_id,
+                project_id=project_id,
+                provider_hint=provider_hint,
+                deployment_hint=deployment_hint,
+            ),
             bearer_token=None,
             token_verifier=self.tokens.verify,
             project_config_loader=self.project_configs.load_for_project,

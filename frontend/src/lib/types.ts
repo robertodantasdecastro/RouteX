@@ -116,6 +116,7 @@ export type Settings = {
   host: string;
   port: number;
   theme: string;
+  interface_mode: "cyberdeck" | "classic";
   startup_enabled: boolean;
   debug_logging_ttl_minutes: number;
   log_level: string;
@@ -253,6 +254,16 @@ export type ShellTrayStatus = {
   note: string;
 };
 
+export type ShellInstalledAppStatus = {
+  appId: string;
+  displayName: string;
+  kind: "desktop" | "extension" | "cli";
+  installed: boolean;
+  detection: string;
+  launchPath?: string | null;
+  setupHint: string;
+};
+
 export type ModelRecord = {
   id: string;
   object: "model";
@@ -269,6 +280,7 @@ export type ModelsResponse = {
 export type RouteSection =
   | "onboarding"
   | "overview"
+  | "prompts"
   | "providers"
   | "models"
   | "routes"

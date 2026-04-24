@@ -55,6 +55,8 @@ export const adminApi = {
     model_alias: string;
     profile_id?: string;
     project_id?: string;
+    provider_hint?: string;
+    deployment_hint?: string;
   }) => {
     const search = new URLSearchParams({ model_alias: params.model_alias });
     if (params.profile_id) {
@@ -62,6 +64,12 @@ export const adminApi = {
     }
     if (params.project_id) {
       search.set("project_id", params.project_id);
+    }
+    if (params.provider_hint) {
+      search.set("provider_hint", params.provider_hint);
+    }
+    if (params.deployment_hint) {
+      search.set("deployment_hint", params.deployment_hint);
     }
     return getJson<RoutePreview>(`${adminBase}/routing/preview?${search.toString()}`);
   },

@@ -22,6 +22,7 @@ def test_health_endpoint(tmp_path, monkeypatch):
         payload = response.json()
         assert payload["app"] == "RouteX Gateway"
         assert payload["settings"]["port"] == 48200
+        assert payload["settings"]["interface_mode"] == "cyberdeck"
         assert payload["settings"]["default_profile"] == "private-mode"
         assert len(payload["providers"]) >= 1
 
@@ -94,6 +95,7 @@ def test_admin_control_plane_and_route_preview(tmp_path, monkeypatch):
         assert settings_response.status_code == 200
         settings_bundle = settings_response.json()
         assert settings_bundle["effective"]["port"] == 48200
+        assert settings_bundle["effective"]["interface_mode"] == "cyberdeck"
         assert settings_bundle["effective"]["default_profile"] == "private-mode"
 
         preview_response = client.get(
@@ -116,6 +118,7 @@ def test_settings_override_changes_default_profile(tmp_path, monkeypatch):
                 "host": "127.0.0.1",
                 "port": 48200,
                 "theme": "dark",
+                "interface_mode": "classic",
                 "startup_enabled": True,
                 "debug_logging_ttl_minutes": 30,
                 "log_level": "INFO",
@@ -132,3 +135,21 @@ def test_settings_override_changes_default_profile(tmp_path, monkeypatch):
         assert preview_response.status_code == 200
         preview_payload = preview_response.json()
         assert preview_payload["profile_id"] == "local-first"
+
+
+def test_settings_legacy_payload_defaults_to_cyberdeck():
+    from routex_gateway.domain.models import SettingsDefinition
+
+    payload = {
+        "host": "127.0.0.1",
+        "port": 48200,
+        "theme": "dark",
+        "startup_enabled": True,
+        "debug_logging_ttl_minutes": 30,
+        "log_level": "INFO",
+        "default_profile": "private-mode",
+        "cursor_model_alias": "qwen2.5-coder:latest",
+    }
+
+    settings = SettingsDefinition.model_validate(payload)
+    assert settings.interface_mode == "cyberdeck"
